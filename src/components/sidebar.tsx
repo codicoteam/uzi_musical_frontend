@@ -18,7 +18,7 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
     { icon: Award, label: "Plaques", path: "/plaques" },
     { icon: Newspaper, label: "News and Updates", path: "/news" },
     { icon: Activity, label: "Activities", path: "/activities" },
-    { icon: Settings, label: "Settings", path: "/settings" },
+    { icon: Settings, label: "Settings", path: "/profile" },
     { icon: LogOut, label: "Logout", path: "/logout" },
   ];
 
@@ -39,17 +39,17 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
         } transition-all duration-300 ease-out lg:translate-x-0 lg:static lg:inset-0 shadow-lg flex flex-col h-screen`}
       >
         {/* Header */}
-        <div className="relative flex items-center justify-between h-20 px-6 border-b border-gray-200 flex-shrink-0">
+        <div className="relative flex items-center justify-between h-20 px-6 border-b border-gray-200 shrink-0">
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/50 flex items-center justify-center transform hover:scale-105 transition-transform duration-200 animate-pulse-subtle">
+              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-purple-500 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/50 flex items-center justify-center transform hover:scale-105 transition-transform duration-200 animate-pulse-subtle">
                 <Music2 className="w-6 h-6 text-white" />
               </div>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-fuchsia-500 rounded-full animate-ping"></div>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-fuchsia-500 rounded-full"></div>
             </div>
             <div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-linear-to-r from-purple-600 via-fuchsia-600 to-purple-600 bg-clip-text text-transparent">
                 Uzinduzi
               </span>
               <div className="text-xs text-gray-600 font-medium tracking-wide">
@@ -102,7 +102,7 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
                 className={({ isActive }) =>
                   `group relative flex items-center px-4 py-3.5 text-sm font-medium rounded-xl transition-all duration-200 transform hover:scale-[1.02] ${
                     isActive
-                      ? "text-white bg-gradient-to-r from-purple-600 via-purple-500 to-fuchsia-600 shadow-lg shadow-purple-500/40"
+                      ? "text-white bg-linear-to-r from-purple-600 via-purple-500 to-fuchsia-600 shadow-lg shadow-purple-500/40"
                       : "text-gray-700 hover:text-purple-600 hover:bg-purple-50"
                   }`
                 }
@@ -116,7 +116,7 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
                   <>
                     {/* Active indicator */}
                     {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-gradient-to-b from-fuchsia-400 via-purple-400 to-fuchsia-400 rounded-r-full animate-slideIn shadow-lg shadow-purple-500/50"></div>
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-linear-to-b from-fuchsia-400 via-purple-400 to-fuchsia-400 rounded-r-full animate-slideIn shadow-lg shadow-purple-500/50"></div>
                     )}
 
                     {/* Icon container */}
@@ -134,12 +134,12 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
 
                     {/* Hover glow effect */}
                     {!isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600/5 to-fuchsia-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
+                      <div className="absolute inset-0 rounded-xl bg-linear-to-r from-purple-600/5 to-fuchsia-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
                     )}
 
                     {/* Active glow */}
                     {isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/20 to-fuchsia-500/20 blur-xl -z-10"></div>
+                      <div className="absolute inset-0 rounded-xl bg-linear-to-r from-purple-500/20 to-fuchsia-500/20 blur-xl -z-10"></div>
                     )}
                   </>
                 )}
@@ -150,9 +150,9 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
 
         {/* Now Playing Mini Card (Optional) */}
         <div className="px-6 py-4 border-t border-gray-200 shrink-0">
-          <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl p-3 border border-purple-200 backdrop-blur-sm">
+          <div className="bg-linear-to-br from-purple-50 to-fuchsia-50 rounded-xl p-3 border border-purple-200 backdrop-blur-sm">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <Music2 className="w-5 h-5 text-white animate-pulse-subtle" />
               </div>
               <div className="flex-1 min-w-0">
