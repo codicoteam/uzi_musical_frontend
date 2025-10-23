@@ -143,7 +143,7 @@ const AlbumScreen = () => {
                   <div className={`text-xs ${themeClasses.textSecondary}`}>Admin</div>
                 </div>
                 <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                  <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
                     <span className="text-white font-semibold text-sm">
                       {userName.split(" ").map((n) => n[0]).join("")}
                     </span>
@@ -165,7 +165,7 @@ const AlbumScreen = () => {
                 onClick={() => setActiveTab(tab as "collection")}
                 className={`capitalize px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
                   activeTab === tab
-                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md"
+                    ? "bg-linear-to-r from-blue-500 to-indigo-500 text-white shadow-md"
                     : `${themeClasses.textSecondary} hover:bg-slate-100`
                 }`}
               >
@@ -222,7 +222,7 @@ const AlbumScreen = () => {
                         alt={album.title}
                         className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
                       <div className="absolute bottom-4 left-4 text-white">
                         <h3 className="text-lg font-bold">{album.title}</h3>
                         <p className="text-sm opacity-80">{album.artist}</p>

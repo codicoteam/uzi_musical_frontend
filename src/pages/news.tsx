@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Music, TrendingUp, Calendar, Clock, Play, Heart, Share2, MessageCircle, Menu, ChevronDown, X } from 'lucide-react';
+import { useState } from 'react';
+import { TrendingUp, Calendar, Clock, Play, Heart, Share2, MessageCircle, Menu, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/sidebar';
 
@@ -189,7 +189,7 @@ const MusicNewsScreen = () => {
                   <div className={`text-xs ${themeClasses.textSecondary}`}>Admin</div>
                 </div>
                 <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                  <div className="w-10 h-10 bg-linear-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
                     <span className="text-white font-semibold text-sm">
                       {userName.split(" ").map((n) => n[0]).join("")}
                     </span>
@@ -226,7 +226,7 @@ const MusicNewsScreen = () => {
                       onClick={() => scrollToNews(update.relatedNewsId)}
                       className="w-full flex items-start space-x-3 p-3 hover:bg-red-50 rounded-lg transition-all text-left cursor-pointer group"
                     >
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0 group-hover:scale-125 transition-transform"></div>
+                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 shrink-0 group-hover:scale-125 transition-transform"></div>
                       <div className="flex-1">
                         <p className="text-gray-800 font-medium group-hover:text-red-600 transition-colors">{update.text}</p>
                         <span className="text-xs text-gray-500">{update.time}</span>
@@ -240,7 +240,7 @@ const MusicNewsScreen = () => {
               </div>
 
               {/* Trending Banner */}
-              <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-6 shadow-xl">
+              <div className="bg-linear-to-r from-red-500 to-red-600 rounded-2xl p-6 shadow-xl">
                 <div className="flex items-center space-x-2 mb-2">
                   <TrendingUp className="w-5 h-5 text-white" />
                   <span className="text-white font-semibold text-sm uppercase tracking-wide">Trending Now</span>
