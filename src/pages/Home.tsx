@@ -72,7 +72,7 @@ const HomeScreen = () => {
       tracks: 12,
       image:
         "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=400&fit=crop",
-      color: "from-purple-500 to-pink-500",
+      color: "from-red-500 to-red-600",
     },
     {
       id: 2,
@@ -83,7 +83,7 @@ const HomeScreen = () => {
       tracks: 15,
       image:
         "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
-      color: "from-orange-500 to-red-500",
+      color: "from-red-600 to-red-700",
     },
     {
       id: 3,
@@ -94,7 +94,7 @@ const HomeScreen = () => {
       tracks: 10,
       image:
         "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop",
-      color: "from-emerald-500 to-teal-500",
+      color: "from-red-500 to-red-600",
     },
     {
       id: 4,
@@ -105,7 +105,7 @@ const HomeScreen = () => {
       tracks: 14,
       image:
         "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop",
-      color: "from-violet-500 to-purple-500",
+      color: "from-red-600 to-red-700",
     },
     {
       id: 5,
@@ -116,7 +116,7 @@ const HomeScreen = () => {
       tracks: 11,
       image:
         "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=400&h=400&fit=crop",
-      color: "from-blue-500 to-indigo-500",
+      color: "from-red-500 to-red-600",
     },
     {
       id: 6,
@@ -127,7 +127,7 @@ const HomeScreen = () => {
       tracks: 13,
       image:
         "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=400&h=400&fit=crop",
-      color: "from-red-500 to-orange-500",
+      color: "from-red-600 to-red-700",
     },
     {
       id: 7,
@@ -138,7 +138,7 @@ const HomeScreen = () => {
       tracks: 16,
       image:
         "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=400&fit=crop",
-      color: "from-amber-500 to-yellow-500",
+      color: "from-red-500 to-red-600",
     },
     {
       id: 8,
@@ -149,7 +149,7 @@ const HomeScreen = () => {
       tracks: 12,
       image:
         "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=400&fit=crop",
-      color: "from-green-500 to-emerald-500",
+      color: "from-red-600 to-red-700",
     },
   ];
 
@@ -159,11 +159,11 @@ const HomeScreen = () => {
       value: totalAlbums,
       unit: "",
       trend: "+12%",
-      color: "from-purple-500 to-purple-600",
+      color: "from-red-500 to-red-600",
       bgColor: isDarkMode
-        ? "bg-purple-900/20"
-        : "bg-gradient-to-br from-purple-500/10 to-pink-500/5",
-      borderColor: isDarkMode ? "border-purple-700/50" : "border-purple-200/50",
+        ? "bg-red-900/20"
+        : "bg-gradient-to-br from-red-500/10 to-red-600/5",
+      borderColor: isDarkMode ? "border-red-700/50" : "border-red-200/50",
       icon: Disc,
     },
     {
@@ -171,11 +171,11 @@ const HomeScreen = () => {
       value: totalArtists,
       unit: "",
       trend: "+8%",
-      color: "from-pink-500 to-pink-600",
+      color: "from-red-500 to-red-600",
       bgColor: isDarkMode
-        ? "bg-pink-900/20"
-        : "bg-gradient-to-br from-pink-500/10 to-rose-500/5",
-      borderColor: isDarkMode ? "border-pink-700/50" : "border-pink-200/50",
+        ? "bg-red-900/20"
+        : "bg-gradient-to-br from-red-500/10 to-red-600/5",
+      borderColor: isDarkMode ? "border-red-700/50" : "border-red-200/50",
       icon: Users,
     },
     {
@@ -183,11 +183,11 @@ const HomeScreen = () => {
       value: totalTracks,
       unit: "",
       trend: "+15%",
-      color: "from-violet-500 to-violet-600",
+      color: "from-red-500 to-red-600",
       bgColor: isDarkMode
-        ? "bg-violet-900/20"
-        : "bg-gradient-to-br from-violet-500/10 to-purple-500/5",
-      borderColor: isDarkMode ? "border-violet-700/50" : "border-violet-200/50",
+        ? "bg-red-900/20"
+        : "bg-gradient-to-br from-red-500/10 to-red-600/5",
+      borderColor: isDarkMode ? "border-red-700/50" : "border-red-200/50",
       icon: Music,
     },
     {
@@ -195,13 +195,11 @@ const HomeScreen = () => {
       value: totalStreams,
       unit: "",
       trend: "+22%",
-      color: "from-fuchsia-500 to-fuchsia-600",
+      color: "from-red-500 to-red-600",
       bgColor: isDarkMode
-        ? "bg-fuchsia-900/20"
-        : "bg-gradient-to-br from-fuchsia-500/10 to-pink-500/5",
-      borderColor: isDarkMode
-        ? "border-fuchsia-700/50"
-        : "border-fuchsia-200/50",
+        ? "bg-red-900/20"
+        : "bg-gradient-to-br from-red-500/10 to-red-600/5",
+      borderColor: isDarkMode ? "border-red-700/50" : "border-red-200/50",
       icon: Play,
     },
   ];
@@ -303,7 +301,7 @@ const HomeScreen = () => {
                   </div>
                 </div>
                 <div className="relative">
-                  <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+                  <div className="w-10 h-10 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
                     <span className="text-white font-semibold text-sm">
                       {firstName
                         .split(" ")

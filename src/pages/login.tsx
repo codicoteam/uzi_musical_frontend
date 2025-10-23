@@ -97,7 +97,7 @@ export default function LoginScreen() {
             type="submit"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transform transition-all hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            className="w-full bg-linear-to-r from-purple-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transform transition-all hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
           >
             Sign In
             <ArrowRight 

@@ -138,7 +138,7 @@ const ProfileScreen = () => {
                   </div>
                 </div>
                 <div className="relative">
-                  <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+                  <div className="w-10 h-10 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
                     <span className="text-white font-semibold text-sm">
                       {initials}
                     </span>
@@ -156,12 +156,12 @@ const ProfileScreen = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Profile Header Card */}
-       {/* Profile Header Card */}
+          {/* Profile Header Card */}
           <div
             className={`${themeClasses.card} backdrop-blur-sm border ${themeClasses.border} rounded-3xl overflow-hidden shadow-lg`}
           >
             {/* Cover Image with Gradient Overlay */}
-            <div className="h-40 sm:h-48 bg-linear-to-r from-purple-500 via-pink-500 to-orange-500 relative">
+            <div className="h-40 sm:h-48 bg-linear-to-r from-red-600 via-red-500 to-red-600 relative">
               <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/30"></div>
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
             </div>
@@ -172,7 +172,13 @@ const ProfileScreen = () => {
                 {/* Avatar */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
                   <div className="relative group">
-                    <div className={`w-32 h-32 sm:w-36 sm:h-36 bg-linear-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl ${isDarkMode ? 'border-4 border-gray-800' : 'border-4 border-white'} relative overflow-hidden ring-4 ring-purple-500/20`}>
+                    <div
+                      className={`w-32 h-32 sm:w-36 sm:h-36 bg-linear-to-br from-red-500 to-red-600 rounded-3xl flex items-center justify-center shadow-2xl ${
+                        isDarkMode
+                          ? "border-4 border-gray-800"
+                          : "border-4 border-white"
+                      } relative overflow-hidden ring-4 ring-red-500/20`}
+                    >
                       {profile.avatar ? (
                         <img
                           src={profile.avatar}
@@ -187,7 +193,9 @@ const ProfileScreen = () => {
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center cursor-pointer backdrop-blur-sm">
                         <div className="text-center">
                           <Camera className="w-8 h-8 text-white mx-auto mb-1" />
-                          <span className="text-white text-xs font-medium">Change Photo</span>
+                          <span className="text-white text-xs font-medium">
+                            Change Photo
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -196,19 +204,31 @@ const ProfileScreen = () => {
                   {/* Name and Bio - Desktop */}
                   {!isEditing && (
                     <div className="hidden sm:block sm:pb-2 flex-1 max-w-md">
-                      <h1 className={`text-3xl font-bold ${themeClasses.text} mb-2`}>
+                      <h1
+                        className={`text-3xl font-bold ${themeClasses.text} mb-2`}
+                      >
                         {fullName}
                       </h1>
-                      <p className={`text-sm ${themeClasses.textSecondary} leading-relaxed mb-3`}>
+                      <p
+                        className={`text-sm ${themeClasses.textSecondary} leading-relaxed mb-3`}
+                      >
                         {profile.bio}
                       </p>
                       <div className="flex items-center space-x-2">
-                        <Calendar className={`w-4 h-4 ${themeClasses.textSecondary}`} />
-                        <span className={`text-sm ${themeClasses.textSecondary}`}>
-                          Joined {new Date(profile.joinDate).toLocaleDateString("en-US", {
-                            month: "long",
-                            year: "numeric",
-                          })}
+                        <Calendar
+                          className={`w-4 h-4 ${themeClasses.textSecondary}`}
+                        />
+                        <span
+                          className={`text-sm ${themeClasses.textSecondary}`}
+                        >
+                          Joined{" "}
+                          {new Date(profile.joinDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}
                         </span>
                       </div>
                     </div>
@@ -220,7 +240,7 @@ const ProfileScreen = () => {
                   {!isEditing ? (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300"
+                      className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-linear-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-red-500/30 hover:scale-105 transition-all duration-300"
                     >
                       <Edit2 className="w-4 h-4" />
                       <span>Edit Profile</span>
@@ -230,8 +250,12 @@ const ProfileScreen = () => {
                       <button
                         onClick={handleCancel}
                         className={`flex-1 sm:flex-initial flex items-center justify-center space-x-2 px-5 py-3 ${
-                          isDarkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-slate-200 hover:bg-slate-300"
-                        } ${themeClasses.text} rounded-xl font-semibold transition-all duration-200`}
+                          isDarkMode
+                            ? "bg-gray-700 hover:bg-gray-600"
+                            : "bg-slate-200 hover:bg-slate-300"
+                        } ${
+                          themeClasses.text
+                        } rounded-xl font-semibold transition-all duration-200`}
                       >
                         <X className="w-4 h-4" />
                         <span>Cancel</span>
@@ -252,19 +276,29 @@ const ProfileScreen = () => {
               <div className="mt-6 space-y-3">
                 {!isEditing ? (
                   <div className="sm:hidden">
-                    <h1 className={`text-2xl font-bold ${themeClasses.text} mb-2`}>
+                    <h1
+                      className={`text-2xl font-bold ${themeClasses.text} mb-2`}
+                    >
                       {fullName}
                     </h1>
-                    <p className={`text-sm ${themeClasses.textSecondary} leading-relaxed mb-3`}>
+                    <p
+                      className={`text-sm ${themeClasses.textSecondary} leading-relaxed mb-3`}
+                    >
                       {profile.bio}
                     </p>
                     <div className="flex items-center space-x-2">
-                      <Calendar className={`w-4 h-4 ${themeClasses.textSecondary}`} />
+                      <Calendar
+                        className={`w-4 h-4 ${themeClasses.textSecondary}`}
+                      />
                       <span className={`text-sm ${themeClasses.textSecondary}`}>
-                        Joined {new Date(profile.joinDate).toLocaleDateString("en-US", {
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        Joined{" "}
+                        {new Date(profile.joinDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
                       </span>
                     </div>
                   </div>
@@ -278,7 +312,7 @@ const ProfileScreen = () => {
                           handleInputChange("firstName", e.target.value)
                         }
                         placeholder="First Name"
-                        className={`px-4 py-3 rounded-xl border-2 ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                        className={`px-4 py-3 rounded-xl border-2 ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
                       />
                       <input
                         type="text"
@@ -287,7 +321,7 @@ const ProfileScreen = () => {
                           handleInputChange("lastName", e.target.value)
                         }
                         placeholder="Last Name"
-                        className={`px-4 py-3 rounded-xl border-2 ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all`}
+                        className={`px-4 py-3 rounded-xl border-2 ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
                       />
                     </div>
                     <textarea
@@ -295,7 +329,7 @@ const ProfileScreen = () => {
                       onChange={(e) => handleInputChange("bio", e.target.value)}
                       placeholder="Bio"
                       rows={3}
-                      className={`w-full px-4 py-3 rounded-xl border-2 ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none`}
+                      className={`w-full px-4 py-3 rounded-xl border-2 ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none`}
                     />
                   </div>
                 )}
@@ -309,7 +343,9 @@ const ProfileScreen = () => {
           >
             <div className="flex items-center space-x-2 mb-4">
               <User className={`w-5 h-5 ${themeClasses.text}`} />
-              <h2 className={`text-lg sm:text-xl font-bold ${themeClasses.text}`}>
+              <h2
+                className={`text-lg sm:text-xl font-bold ${themeClasses.text}`}
+              >
                 Contact Information
               </h2>
             </div>
@@ -343,7 +379,7 @@ const ProfileScreen = () => {
                       onChange={(e) =>
                         handleInputChange("email", e.target.value)
                       }
-                      className={`w-full px-3 py-2 rounded-lg border ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm`}
+                      className={`w-full px-3 py-2 rounded-lg border ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm`}
                     />
                   )}
                 </div>
@@ -377,7 +413,7 @@ const ProfileScreen = () => {
                       onChange={(e) =>
                         handleInputChange("phone", e.target.value)
                       }
-                      className={`w-full px-3 py-2 rounded-lg border ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm`}
+                      className={`w-full px-3 py-2 rounded-lg border ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm`}
                     />
                   )}
                 </div>
@@ -411,7 +447,7 @@ const ProfileScreen = () => {
                       onChange={(e) =>
                         handleInputChange("location", e.target.value)
                       }
-                      className={`w-full px-3 py-2 rounded-lg border ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm`}
+                      className={`w-full px-3 py-2 rounded-lg border ${themeClasses.input} focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm`}
                     />
                   )}
                 </div>
