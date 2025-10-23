@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function LoginScreen() {
@@ -6,10 +7,44 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempted with:', { email, password });
+    setError('');
+    setLoading(true);
+
+    try {
+      // --- Option 1: Local dummy credentials ---
+      if (email === 'admin@example.com' && password === '123') {
+        localStorage.setItem('authToken', 'dummy-token');
+        navigate('/home');
+      } else {
+        setError('Invalid email or password');
+      }
+
+      // --- Option 2 (optional): API login ---
+      /*
+      const response = await fetch('https://your-api.com/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem('authToken', data.token);
+        navigate('/dashboard');
+      } else {
+        setError(data.message || 'Login failed');
+      }
+      */
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -21,15 +56,13 @@ export default function LoginScreen() {
 
       {/* Login card */}
       <div className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md border border-purple-100">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
           <p className="text-gray-500">Sign in to continue to your account</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email input */}
+          {/* Email */}
           <div className="relative">
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -50,7 +83,7 @@ export default function LoginScreen() {
             </div>
           </div>
 
-          {/* Password input */}
+          {/* Password */}
           <div className="relative">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -78,6 +111,9 @@ export default function LoginScreen() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
           {/* Remember me & Forgot password */}
           <div className="flex items-center justify-between">
             <label className="flex items-center">
@@ -92,25 +128,30 @@ export default function LoginScreen() {
             </a>
           </div>
 
-          {/* Submit button */}
+          {/* Submit */}
           <button
             type="submit"
+            disabled={loading}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="w-full bg-linear-to-r from-purple-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transform transition-all hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            className={`w-full ${
+              loading ? 'bg-purple-400' : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+            } text-white py-3 rounded-xl font-semibold transform transition-all hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2`}
           >
-            Sign In
-            <ArrowRight 
-              size={20} 
-              className={`transform transition-transform ${isHovered ? 'translate-x-1' : ''}`}
-            />
+            {loading ? 'Signing in...' : 'Sign In'}
+            {!loading && (
+              <ArrowRight
+                size={20}
+                className={`transform transition-transform ${isHovered ? 'translate-x-1' : ''}`}
+              />
+            )}
           </button>
         </form>
 
         {/* Sign up link */}
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{' '}
-          <a href="create" className="text-purple-600 hover:text-purple-700 font-semibold">
+          <a href="/create" className="text-purple-600 hover:text-purple-700 font-semibold">
             Sign up now
           </a>
         </p>
