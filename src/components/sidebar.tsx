@@ -6,10 +6,10 @@ import {
   Activity,
   Settings,
   LogOut,
-  X,
   Music2,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import logo from "../assets/logo.jpg";
 
 const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
   const sidebarItems = [
@@ -38,31 +38,18 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
           isOpen ? "translate-x-0" : "-translate-x-full"
         } transition-all duration-300 ease-out lg:translate-x-0 lg:static lg:inset-0 shadow-lg flex flex-col h-screen`}
       >
+      
         {/* Header */}
         <div className="relative flex items-center justify-between h-20 px-6 border-b border-gray-200 shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-red-500 via-red-600 to-rose-600 shadow-lg shadow-red-500/50 flex items-center justify-center transform hover:scale-105 transition-transform duration-200 animate-pulse-subtle">
-                <Music2 className="w-6 h-6 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full animate-ping"></div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full"></div>
-            </div>
-            <div>
-              <span className="text-2xl font-bold bg-linear-to-r from-red-600 via-rose-600 to-red-600 bg-clip-text text-transparent">
-                Uzinduzi
-              </span>
-              <div className="text-xs text-gray-600 font-medium tracking-wide">
-                Your Music Hub
-              </div>
+          <div className="relative flex items-center justify-between h-20 px-6 border-b border-gray-200 shrink-0">
+            <div className="flex items-center">
+              <img
+                src={logo}
+                alt="Uzinduzi Logo"
+                className="h-14 w-auto object-contain hover:scale-105 transition-transform duration-200"
+              />
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="lg:hidden p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 border border-gray-200"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
         </div>
 
         {/* Search Bar */}

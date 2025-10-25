@@ -2,24 +2,39 @@ import { useState } from "react";
 import {
   Menu,
   ChevronDown,
-  DollarSign,
+  Calendar,
+  Music,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/sidebar";
 import { useNavigate } from "react-router-dom";
+import albumService from "../services/album_service"; // Adjust the import path as needed
 
 interface Album {
-  id: number;
+  _id: string;
+  artist: Artist | string; 
   title: string;
-  artist: string;
-  genre: string;
-  cost: number;
-  releaseDate: string;
-  tracks: number;
-  description: string;
-  image: string;
-  color: string;
-  rating: string;
+  release_date: string;
+  genre?: Genre | string; 
+  cover_art?: string;
+  description?: string;
+  track_count: number;
+  copyright_info?: string;
+  publisher?: string;
+  credits?: string;
+  affiliation?: string;
+  duration?: number;
+  is_published: boolean;
+  is_featured: boolean;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiResponse {
+  data?: Album[];
+  albums?: Album[];
+  // Add other possible response properties based on your API
 }
 
 const AlbumScreen = () => {
@@ -41,49 +56,49 @@ const AlbumScreen = () => {
     header: isDarkMode ? "bg-gray-800/80" : "bg-white/80",
   };
 
-  const albums: Album[] = [
-    {
-      id: 1,
-      title: "Midnight Melodies",
-      artist: "Luna Aurora",
-      genre: "Pop",
-      cost: 14.99,
-      releaseDate: "2024-09-15",
-      tracks: 12,
-      description: "A dreamy pop journey through midnight emotions and cosmic sounds.",
-      image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop",
-      color: "from-purple-500 to-pink-500",
-      rating: "4.5",
-    },
-    {
-      id: 2,
-      title: "City Lights",
-      artist: "Neon Dreams",
-      genre: "Electronic",
-      cost: 12.49,
-      releaseDate: "2024-07-10",
-      tracks: 10,
-      description: "Pulsing synth beats and vibrant energy inspired by neon-lit city nights.",
-      image: "https://images.unsplash.com/photo-1499996860823-5214fcc65f8f?w=400&h=400&fit=crop",
-      color: "from-cyan-500 to-red-500",
-      rating: "4.8",
-    },
-    {
-      id: 3,
-      title: "Acoustic Souls",
-      artist: "Sarah Harmony",
-      genre: "Folk",
-      cost: 11.99,
-      releaseDate: "2024-06-21",
-      tracks: 9,
-      description: "Heartfelt acoustic melodies that capture love, loss, and life's simplicity.",
-      image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop",
-      color: "from-emerald-500 to-teal-500",
-      rating: "4.2",
-    },
-  ];
+  // Fetch albums from API
+  useEffect(() => {
+    const fetchAlbums = async () => {
+      try {
+        setLoading(true);
+        const response: ApiResponse = await albumService.getAllAlbums();
+        
+        // Handle different possible response structures
+        let albumsData: Album[] = [];
+        
+        if (Array.isArray(response)) {
+          // If response is directly an array
+          albumsData = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          // If response has a data property that contains the array
+          albumsData = response.data;
+        } else if (response.albums && Array.isArray(response.albums)) {
+          // If response has an albums property that contains the array
+          albumsData = response.albums;
+        } else if (Array.isArray(response)) {
+          // If the response itself is the array
+          albumsData = response;
+        } else {
+          console.warn("Unexpected API response structure:", response);
+          albumsData = [];
+        }
+        
+        setAlbums(albumsData);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch albums. Please try again later.");
+        console.error("Error fetching albums:", err);
+        setAlbums([]); // Ensure albums is always an array
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const totalSpent = albums.reduce((sum, album) => sum + album.cost, 0);
+    fetchAlbums();
+  }, []);
+
+  // Safe reduce with fallback to empty array
+  const totalSpent = albums?.reduce((sum, album) => sum + (album.cost || 0), 0) || 0;
 
   const handleAlbumClick = (album: Album) => {
     // All albums go to the same route
@@ -150,7 +165,7 @@ const AlbumScreen = () => {
                 </div>
 
                 <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                  <div className="w-10 h-10 bg-linear-to-br from-red-700 to-red-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
                     <span className="text-white font-semibold text-sm">
                       {userName.split(" ").map((n) => n[0]).join("")}
                     </span>
@@ -173,7 +188,7 @@ const AlbumScreen = () => {
                 onClick={() => setActiveTab(tab as "collection")}
                 className={`capitalize px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
                   activeTab === tab
-                    ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md"
+                    ? "bg-linear-to-r from-red-700 to-red-500 text-white shadow-md"
                     : `${themeClasses.textSecondary} hover:bg-slate-100`
                 }`}
               >
@@ -204,11 +219,11 @@ const AlbumScreen = () => {
                   </div>
                   <div className={`${themeClasses.card} backdrop-blur-sm border ${themeClasses.border} rounded-2xl px-6 py-4`}>
                     <div className="flex items-center space-x-2">
-                      <DollarSign className="w-5 h-5 text-green-500" />
+                      <Music className="w-5 h-5 text-blue-500" />
                       <div>
-                        <p className={`text-xs ${themeClasses.textSecondary}`}>Total Spent</p>
+                        <p className={`text-xs ${themeClasses.textSecondary}`}>Total Albums</p>
                         <p className={`text-2xl font-bold ${themeClasses.text}`}>
-                          ${totalSpent.toFixed(2)}
+                          {albums.length}
                         </p>
                       </div>
                     </div>
@@ -216,28 +231,40 @@ const AlbumScreen = () => {
                 </div>
 
                 {/* Album Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {albums.map((album) => (
-                    <motion.div
-                      key={album.id}
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                      className={`cursor-pointer group relative overflow-hidden rounded-2xl ${themeClasses.card} border ${themeClasses.border} backdrop-blur-sm hover:shadow-2xl`}
-                      onClick={() => handleAlbumClick(album)}
-                    >
-                      <img
-                        src={album.image}
-                        alt={album.title}
-                        className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <h3 className="text-lg font-bold">{album.title}</h3>
-                        <p className="text-sm opacity-80">{album.artist}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                {!loading && !error && albums && albums.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {albums.map((album) => (
+                      <motion.div
+                        key={album.id}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        className={`cursor-pointer group relative overflow-hidden rounded-2xl ${themeClasses.card} border ${themeClasses.border} backdrop-blur-sm hover:shadow-2xl`}
+                        onClick={() => handleAlbumClick(album)}
+                      >
+                        <img
+                          src={album.image}
+                          alt={album.title}
+                          className="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                        <div className="absolute bottom-4 left-4 text-white">
+                          <h3 className="text-lg font-bold">{album.title}</h3>
+                          <p className="text-sm opacity-80">{album.artist}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {!loading && !error && (!albums || albums.length === 0) && (
+                  <div className="flex justify-center items-center py-12">
+                    <div className={`text-center ${themeClasses.text}`}>
+                      <p className="text-lg font-semibold">No albums found</p>
+                      <p className={themeClasses.textSecondary}>Your album collection is empty</p>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -248,3 +275,19 @@ const AlbumScreen = () => {
 };
 
 export default AlbumScreen;
+function useEffect(arg0: () => void, arg1: never[]) {
+  throw new Error("Function not implemented.");
+}
+
+function setLoading(arg0: boolean) {
+  throw new Error("Function not implemented.");
+}
+
+function setAlbums(albumsData: Album[]) {
+  throw new Error("Function not implemented.");
+}
+
+function setError(arg0: null) {
+  throw new Error("Function not implemented.");
+}
+

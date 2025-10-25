@@ -146,7 +146,7 @@ export default function LoginScreen() {
             className={`w-full ${
               loading
                 ? 'bg-red-400'
-                : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
+                : 'bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
             } text-white py-3 rounded-xl font-semibold transform transition-all hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2`}
           >
             {loading ? 'Signing in...' : 'Sign In'}
