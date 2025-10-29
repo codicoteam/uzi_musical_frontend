@@ -20,7 +20,7 @@ export default function LoginScreen() {
 
     try {
       // Call the login service
-      const response = await userService.login({ email, password });
+      await userService.login({ email, password });
       
       // Show success alert
       await Swal.fire({

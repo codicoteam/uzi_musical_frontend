@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Disc,
   Play,
-  Star,
   Search,
   X,
 } from "lucide-react";
@@ -80,18 +79,6 @@ const HomeScreen = () => {
   );
 
   // Even faster handler for button clicks
-  const handleViewAlbum = useCallback(
-    (album: Album, e: React.MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-
-      // Direct immediate navigation without any wrappers
-      navigate(`/view`, {
-        state: { album },
-      });
-    },
-    [navigate]
-  );
 
   // Mock data - replace with actual API calls
   const totalAlbums = albums?.length || 0;
@@ -474,16 +461,8 @@ const HomeScreen = () => {
                   </p>
 
                   <div className="flex items-center space-x-4 mb-6">
-                    <button
-                      onClick={(e) => handleViewAlbum(featuredAlbum, e)}
-                      className="flex items-center space-x-2 px-6 sm:px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition-all duration-200"
-                    >
-                      <Play className="w-5 h-5" fill="black" />
-                      <span>Play</span>
-                    </button>
-                    <button className="p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-all duration-200">
-                      <Star className="w-5 h-5 text-white" />
-                    </button>
+                  
+                    
                   </div>
                 </div>
               </div>

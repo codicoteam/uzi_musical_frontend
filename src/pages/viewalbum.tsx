@@ -1,9 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import PaymentModal from "../components/home/payment";
 import trackService from "../services/tracks_service";
 import albumService from "../services/album_service";
+import cover2 from "../assets/replacementcover/cover3.jpg";
+import cover from "../assets/replacementcover/cover5.jpg";
+//plaques
+import goldPlaque from "../assets/plaques/gol.png";
+import silverPlaque from "../assets/plaques/sil.png";
+import emeraldPlaque from "../assets/plaques/gree.png";
+import sapphirePlaque from "../assets/plaques/blue.png";
+import crimsonPlaque from "../assets/plaques/red.png";
+import woodPlaque from "../assets/plaques/blue.png";
+import thankYouPlaque from "../assets/plaques/sil.png";
 
 interface Track {
   _id?: string;
@@ -39,9 +49,9 @@ interface GenreRef {
 
 interface Plaque {
   _id: string;
-  plaque_type: string; // e.g., Gold, Silver, Emerald
+  plaque_type: string;
   plaque_image_url: string;
-  plaque_price_range: string; // "$600 - $1200"
+  plaque_price_range: string;
 }
 
 interface Album {
@@ -58,7 +68,7 @@ interface Album {
   publisher?: string;
   credits?: string;
   affiliation?: string;
-  duration?: number; // seconds
+  duration?: number;
   is_published?: boolean;
   color?: string;
   tracks?: Track[];
@@ -85,35 +95,18 @@ const AlbumPage = () => {
   const { albumId } = useParams<{ albumId: string }>();
 
   const [isDarkMode] = useState(false);
-
-  // Payment / Support
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(0);
-
-  // Album state (prefer fetched by ID; fallback to navigation state)
   const [album, setAlbum] = useState<Album | undefined>(
     (location.state?.album as Album | undefined) || undefined
   );
   const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [albumError, setAlbumError] = useState<string | null>(null);
-
-  // Track state
   const [currentTrack, setCurrentTrack] = useState(0);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
-  const [tracksError, setTracksError] = useState<string | null>(null);
+  const [, setTracksError] = useState<string | null>(null);
 
-  // Theme helpers
-  const themeClasses = {
-    bg: isDarkMode ? "bg-gray-950" : "bg-white",
-    card: isDarkMode ? "bg-gray-900" : "bg-white",
-    text: isDarkMode ? "text-white" : "text-slate-900",
-    textSecondary: isDarkMode ? "text-gray-400" : "text-slate-600",
-    border: isDarkMode ? "border-gray-800" : "border-slate-200",
-    subtle: isDarkMode ? "bg-gray-800/60" : "bg-slate-50",
-  };
-
-  // -------- Fetch Album by ID (with token) --------
   useEffect(() => {
     const fetchAlbum = async () => {
       if (!albumId || (album && album._id === albumId)) return;
@@ -123,7 +116,8 @@ const AlbumPage = () => {
         setAlbumError(null);
         const token =
           (typeof window !== "undefined" &&
-            (localStorage.getItem("token") || sessionStorage.getItem("token"))) ||
+            (localStorage.getItem("token") ||
+              sessionStorage.getItem("token"))) ||
           "";
 
         const response = await albumService.getAlbumById(albumId, token);
@@ -137,17 +131,14 @@ const AlbumPage = () => {
     };
 
     fetchAlbum();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [albumId]);
 
-  // Redirect if neither album nor state provided and no albumId
   useEffect(() => {
     if (!album && !albumId && !location.state) {
       navigate("/", { replace: true });
     }
   }, [album, albumId, location.state, navigate]);
 
-  // -------- Fetch Tracks for Album --------
   useEffect(() => {
     const fetchTracks = async () => {
       const idToUse = album?._id || albumId;
@@ -179,7 +170,6 @@ const AlbumPage = () => {
 
   const currentTrackData = tracks[currentTrack];
 
-  // -------- Plaque/Price Slider Computations --------
   const allPlaqueRanges = useMemo(() => {
     const arr = album?.plaqueArray || [];
     const parsed = arr
@@ -204,16 +194,39 @@ const AlbumPage = () => {
   }, [allPlaqueRanges.globalMin, allPlaqueRanges.globalMax]);
 
   const matchedPlaque = useMemo(() => {
+    return album?.plaqueArray?.find((p) => {
+      const range = parsePriceRange(p.plaque_price_range);
+      return range && selectedAmount >= range[0] && selectedAmount <= range[1];
+    });
+  }, [album?.plaqueArray, selectedAmount]);
+
+  const getDisplayPlaque = useMemo(() => {
     const amt = selectedAmount;
-    const hit =
-      allPlaqueRanges.parsed.find((x) => amt >= x.min && amt <= x.max) || null;
-    return hit ? hit.plaque : null;
-  }, [selectedAmount, allPlaqueRanges.parsed]);
 
-  const sliderMin = allPlaqueRanges.globalMin;
-  const sliderMax = allPlaqueRanges.globalMax;
+    // Map plaque types to imported images
+    const plaqueImages: { [key: string]: string } = {
+      gold: goldPlaque,
+      silver: silverPlaque,
+      emerald: emeraldPlaque,
+      sapphire: sapphirePlaque,
+      crimson: crimsonPlaque,
+      wood: woodPlaque,
+      thank: thankYouPlaque,
+    };
 
-  // -------- UI Helpers --------
+    if (amt >= 1000) return { type: "Gold", image: plaqueImages.gold };
+    if (amt >= 900) return { type: "Silver", image: plaqueImages.silver };
+    if (amt >= 700) return { type: "Emerald", image: plaqueImages.emerald };
+    if (amt >= 500) return { type: "Sapphire", image: plaqueImages.sapphire };
+    if (amt >= 300) return { type: "Crimson", image: plaqueImages.crimson };
+    if (amt >= 100) return { type: "Wood Plaque", image: plaqueImages.wood };
+    if (amt >= 50) return { type: "Thank You", image: plaqueImages.thank };
+
+    return { type: "Custom Support", image: album?.cover_art };
+  }, [selectedAmount, album?.cover_art]);
+  const sliderMin = 1;
+  const sliderMax = 1000;
+
   const handleBack = () => navigate(-1);
 
   const handleNextTrack = () => {
@@ -243,52 +256,45 @@ const AlbumPage = () => {
   };
 
   const formatDuration = (durationMs?: number) => {
-    if (!durationMs) return "0 Mins 0 Sec";
+    if (!durationMs) return "0:00";
     const totalSeconds = Math.floor(durationMs / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    if (hours > 0) return `${hours} Hr ${minutes} Mins ${seconds} Sec`;
-    return `${minutes} Mins ${seconds} Sec`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const formatAlbumDuration = (duration?: number) => {
-    if (!duration) return "0 Hr 0 Mins 0 Sec";
+    if (!duration) return "0 min";
     const hours = Math.floor(duration / 3600);
     const minutes = Math.floor((duration % 3600) / 60);
-    const seconds = duration % 60;
-    return `${hours} Hr ${minutes} Mins ${seconds} Sec`;
+    if (hours > 0) return `${hours} hr ${minutes} min`;
+    return `${minutes} min`;
   };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Unknown";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
+      return date.getFullYear().toString();
     } catch {
       return "Unknown";
     }
   };
 
-  // ---------- Skeletons (Shimmer) ----------
-  const Box = ({ className = "" }: { className?: string }) => (
-    <div className={`animate-pulse rounded-lg ${isDarkMode ? "bg-gray-800" : "bg-slate-200"} ${className}`} />
-  );
-
   if (!album) {
     return (
-      <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center`}>
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <p className={themeClasses.text}>
-            {albumError ? albumError : loadingAlbum ? "Loading album..." : "Album not found"}
+          <p className="text-slate-900 mb-4">
+            {albumError
+              ? albumError
+              : loadingAlbum
+              ? "Loading album..."
+              : "Album not found"}
           </p>
           <button
             onClick={handleBack}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-6 py-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition font-semibold"
           >
             Go Back
           </button>
@@ -298,400 +304,413 @@ const AlbumPage = () => {
   }
 
   return (
-    <div className={`min-h-screen ${themeClasses.bg} transition-colors duration-300`}>
-      {/* Header */}
-      <header className={`border-b ${themeClasses.border} p-4 sm:p-6 sticky top-0 z-10 ${themeClasses.card}/80 backdrop-blur`}>
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-50">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200">
+        <div className="px-6 py-4 flex items-center gap-4">
           <button
             onClick={handleBack}
-            className={`p-2 rounded-xl border ${themeClasses.border} ${themeClasses.subtle} hover:shadow`}
+            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition"
             aria-label="Go back"
           >
-            <ArrowLeft className={`w-5 h-5 ${themeClasses.text}`} />
+            <ArrowLeft className="w-4 h-4 text-slate-900" />
           </button>
-          <div className="min-w-0">
-            <h1 className={`truncate text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
-              {album.title}
-            </h1>
-            <p className={`text-sm ${themeClasses.textSecondary}`}>by {getArtistName()}</p>
-            {loadingAlbum && (
-              <p className={`text-xs mt-1 ${themeClasses.textSecondary}`}>Loading album…</p>
-            )}
+          {loadingAlbum && (
+            <span className="text-sm text-slate-500">Loading...</span>
+          )}
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <div className="px-6 pt-6 pb-8">
+        <div className="max-w-screen-2xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+            {/* Album Cover */}
+            <div className="w-full md:w-64 shrink-0">
+              <img
+                src={album.cover_art}
+                alt={album.title}
+                className="w-full aspect-square object-cover shadow-2xl rounded-lg"
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = cover2;
+                }}
+              />
+            </div>
+
+            {/* Album Info */}
+            <div className="flex-1 flex flex-col justify-end">
+              <p className="text-sm font-semibold text-slate-900 mb-2">ALBUM</p>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 mb-4 tracking-tight">
+                {album.title}
+              </h1>
+              <div className="flex items-center gap-2 text-sm text-slate-900 flex-wrap">
+                <span className="font-semibold">{getArtistName()}</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-slate-600">
+                  {formatDate(album.release_date)}
+                </span>
+                <span className="text-slate-400">•</span>
+                <span className="text-slate-600">
+                  {album.track_count} songs
+                </span>
+                <span className="text-slate-400">•</span>
+                <span className="text-slate-600">
+                  {formatAlbumDuration(album.duration)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="p-4 sm:p-6">
-        {/* wider page */}
-        <div className="max-w-7xl mx-auto">
-          {/* shift to 12-col; make center (track info) wider */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            {/* Left Column - Album Cover & Meta */}
-            <div className="lg:col-span-3">
-              <div className={`space-y-6 rounded-2xl p-4 sm:p-5 border ${themeClasses.border} ${themeClasses.card} shadow-sm`}>
-                {loadingAlbum ? (
+      <div className="px-6 pb-24">
+        <div className="max-w-screen-2xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left - Track List & Current Track */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Current Track Player Card */}
+              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                      Now Playing
+                    </p>
+                    <p className="text-sm text-slate-900">
+                      Track {tracks.length ? currentTrack + 1 : 0} of{" "}
+                      {tracks.length || album.track_count}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handlePrevTrack}
+                      disabled={tracks.length === 0 || currentTrack === 0}
+                      className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      aria-label="Previous track"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-slate-900" />
+                    </button>
+                    <button
+                      onClick={handleNextTrack}
+                      disabled={
+                        tracks.length === 0 ||
+                        currentTrack === tracks.length - 1
+                      }
+                      className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                      aria-label="Next track"
+                    >
+                      <ChevronRight className="w-5 h-5 text-slate-900" />
+                    </button>
+                  </div>
+                </div>
+
+                {loadingTracks ? (
+                  <div className="space-y-3">
+                    <div className="h-32 bg-slate-200 animate-pulse rounded" />
+                    <div className="h-6 bg-slate-200 animate-pulse rounded w-3/4" />
+                    <div className="h-4 bg-slate-200 animate-pulse rounded w-1/2" />
+                  </div>
+                ) : (
                   <>
-                    <Box className="w-full aspect-square" />
-                    <Box className="h-7 w-3/4" />
-                    <Box className="h-5 w-1/2" />
-                    <div className="space-y-3">
-                      <Box className="h-4 w-full" />
-                      <Box className="h-4 w-5/6" />
-                      <Box className="h-4 w-4/6" />
-                      <Box className="h-4 w-3/6" />
-                    </div>
+                    {currentTrackData && (
+                      <div className="space-y-4">
+                        <div className="flex gap-4">
+                          {currentTrackData.trackArt && (
+                            <img
+                              src={currentTrackData.trackArt}
+                              alt={currentTrackData.title}
+                              className="w-20 h-20 object-cover rounded"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.src = cover2;
+                              }}
+                            />
+                          )}
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-slate-900 mb-1">
+                              {currentTrackData.title}
+                            </h3>
+                            <p className="text-sm text-slate-600">
+                              {currentTrackData.featuredArtists ||
+                                getArtistName()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {currentTrackData.trackDescription && (
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {currentTrackData.trackDescription}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </>
+                )}
+              </div>
+
+              {/* Track Credits */}
+              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">
+                  Credits
+                </h3>
+                {loadingTracks ? (
+                  <div className="space-y-2">
+                    {[...Array(4)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-12 bg-slate-200 animate-pulse rounded"
+                      />
+                    ))}
+                  </div>
+                ) : currentTrackData ? (
+                  <div className="space-y-1">
+                    {currentTrackData.producer && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">Producer</span>
+                        <span className="text-sm text-slate-900">
+                          {currentTrackData.producer}
+                        </span>
+                      </div>
+                    )}
+                    {currentTrackData.writer && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">Writer</span>
+                        <span className="text-sm text-slate-900">
+                          {currentTrackData.writer}
+                        </span>
+                      </div>
+                    )}
+                    {currentTrackData.mixingEngineer && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">
+                          Mixing Engineer
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {currentTrackData.mixingEngineer}
+                        </span>
+                      </div>
+                    )}
+                    {currentTrackData.masteringEngineer && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">
+                          Mastering Engineer
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {currentTrackData.masteringEngineer}
+                        </span>
+                      </div>
+                    )}
+                    {currentTrackData.backingVocals && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">
+                          Backing Vocals
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {currentTrackData.backingVocals}
+                        </span>
+                      </div>
+                    )}
+                    {currentTrackData.instrumentation && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">
+                          Instrumentation
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {currentTrackData.instrumentation}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">Duration</span>
+                      <span className="text-sm text-slate-900">
+                        {formatDuration(currentTrackData.durationMs)}
+                      </span>
+                    </div>
+                    {currentTrackData.releaseDate && (
+                      <div className="flex justify-between py-2">
+                        <span className="text-sm text-slate-500">
+                          Release Date
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {formatDate(currentTrackData.releaseDate)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">Artist</span>
+                      <span className="text-sm text-slate-900">
+                        {getArtistName()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">Genre</span>
+                      <span className="text-sm text-slate-900">
+                        {getGenreName()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">
+                        Release Date
+                      </span>
+                      <span className="text-sm text-slate-900">
+                        {formatDate(album.release_date)}
+                      </span>
+                    </div>
+                    {album.publisher && (
+                      <div className="flex justify-between py-2 border-b border-slate-100">
+                        <span className="text-sm text-slate-500">
+                          Publisher
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {album.publisher}
+                        </span>
+                      </div>
+                    )}
+                    {album.copyright_info && (
+                      <div className="flex justify-between py-2">
+                        <span className="text-sm text-slate-500">
+                          Copyright
+                        </span>
+                        <span className="text-sm text-slate-900">
+                          {album.copyright_info}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Album Description */}
+              {album.description && (
+                <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-3">
+                    About
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {album.description}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Right - Support Section */}
+            <div className="space-y-6">
+              {/* Plaque Preview */}
+              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">
+                  Support the Artist
+                </h3>
+                {loadingAlbum ? (
+                  <div className="space-y-4">
+                    <div className="aspect-square bg-slate-200 animate-pulse rounded" />
+                    <div className="h-6 bg-slate-200 animate-pulse rounded w-3/4" />
+                    <div className="h-4 bg-slate-200 animate-pulse rounded w-1/2" />
+                  </div>
                 ) : (
                   <>
                     <img
-                      src={album.cover_art}
-                      alt={album.title}
-                      className="w-full aspect-square rounded-xl shadow-md object-cover"
+                      src={getDisplayPlaque?.image || album.cover_art}
+                      alt={
+                        getDisplayPlaque
+                          ? `${getDisplayPlaque.type} Plaque`
+                          : "Album Art"
+                      }
+                      className="w-full aspect-square object-contain rounded mb-4"
                       loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = cover;
+                      }}
                     />
-                    <div>
-                      <h2 className={`text-2xl font-bold ${themeClasses.text} mb-1`}>{album.title}</h2>
-                      <p className={`text-sm ${themeClasses.textSecondary} mb-4`}>{getArtistName()}</p>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Contributing Artist</span>
-                          <span className={themeClasses.text}>{getArtistName()}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Track Count</span>
-                          <span className={themeClasses.text}>{album.track_count}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Duration</span>
-                          <span className={themeClasses.text}>{formatAlbumDuration(album.duration)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Affiliation</span>
-                          <span className={themeClasses.text}>{album.affiliation || "Music Label"}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Genre</span>
-                          <span className={themeClasses.text}>{getGenreName()}</span>
-                        </div>
-                        {album.publisher && (
-                          <div className="flex items-center justify-between">
-                            <span className={themeClasses.textSecondary}>Publisher</span>
-                            <span className={themeClasses.text}>{album.publisher}</span>
-                          </div>
-                        )}
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-2xl font-bold text-slate-900">
+                          {getDisplayPlaque?.type || "Custom Support"}
+                        </p>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                          {getDisplayPlaque?.image
+                            ? "Selected Plaque"
+                            : "Choose Amount"}
+                        </p>
                       </div>
+
+                      <div className="flex justify-between items-baseline py-3 border-t border-slate-200">
+                        <span className="text-sm text-slate-500">
+                          Your contribution
+                        </span>
+                        <span className="text-xl font-bold text-green-600">
+                          ${selectedAmount.toLocaleString()}
+                        </span>
+                      </div>
+
+                      {matchedPlaque && (
+                        <div className="flex justify-between py-2 text-sm">
+                          <span className="text-slate-500">Price range</span>
+                          <span className="text-slate-900">
+                            {matchedPlaque.plaque_price_range}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
               </div>
-            </div>
 
-            {/* Center Column - Track Details (WIDER NOW) */}
-            <div className="lg:col-span-6">
-              <div className={`rounded-2xl border ${themeClasses.border} ${themeClasses.card} shadow-sm`}>
-                <div className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className={`text-lg sm:text-xl font-semibold ${themeClasses.text}`}>
-                      Track {tracks.length ? currentTrack + 1 : 0} of {tracks.length || album.track_count}
-                    </h3>
-
-                    {/* Prev / Next */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handlePrevTrack}
-                        disabled={tracks.length === 0 || currentTrack === 0}
-                        className={`px-3 py-2 rounded-lg text-sm font-semibold border ${themeClasses.border}
-                          ${tracks.length === 0 || currentTrack === 0
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-blue-50 hover:border-blue-200 text-blue-700"}`
-                        }
-                        aria-label="Previous track"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={handleNextTrack}
-                        disabled={tracks.length === 0 || currentTrack === tracks.length - 1}
-                        className={`px-3 py-2 rounded-lg text-sm font-semibold border ${themeClasses.border}
-                          ${tracks.length === 0 || currentTrack === tracks.length - 1
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-blue-50 hover:border-blue-200 text-blue-700"}`
-                        }
-                        aria-label="Next track"
-                      >
-                        Next
-                      </button>
-                    </div>
+              {/* Slider */}
+              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+                <div className="space-y-4">
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>${sliderMin.toLocaleString()}</span>
+                    <span>${sliderMax.toLocaleString()}</span>
                   </div>
+                  <input
+                    type="range"
+                    min={sliderMin}
+                    max={sliderMax}
+                    value={selectedAmount}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setSelectedAmount(clamp(val, sliderMin, sliderMax));
+                    }}
+                    className="w-full h-1 bg-slate-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-green-600 [&::-webkit-slider-thumb]:cursor-pointer"
+                  />
+                  <button
+                    onClick={() => setIsPaymentModalOpen(true)}
+                    className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full transition text-sm uppercase tracking-wider"
+                  >
+                    Support Now
+                  </button>
+                </div>
+              </div>
 
-                  {loadingTracks ? (
-                    <div className="space-y-4">
-                      <Box className="w-full max-w-md mx-auto aspect-square" />
-                      <Box className="h-7 w-2/3 mx-auto" />
-                      <Box className="h-4 w-28 mx-auto" />
-                      <Box className="h-16 w-full" />
-                    </div>
-                  ) : (
-                    <>
-                      {/* Track Art */}
-                      {currentTrackData?.trackArt && (
-                        <img
-                          src={currentTrackData.trackArt}
-                          alt={currentTrackData.title}
-                          className="w-full max-w-lg mx-auto aspect-square rounded-xl shadow-md object-cover mb-4"
-                          loading="lazy"
-                        />
-                      )}
-
-                      {/* Title & Description */}
-                      {currentTrackData ? (
-                        <>
-                          <p className={`text-2xl font-bold ${themeClasses.text} text-center mb-2`}>
-                            {currentTrackData.title}
-                          </p>
-                          {typeof currentTrackData.trackNumber === "number" && (
-                            <p className={`text-xs ${themeClasses.textSecondary} text-center mb-3`}>
-                              Track #{currentTrackData.trackNumber}
-                            </p>
-                          )}
-                          <p className={`text-sm ${themeClasses.textSecondary} leading-relaxed text-center sm:text-left`}>
-                            {currentTrackData.trackDescription || album.description || "No description available"}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className={`text-2xl font-bold ${themeClasses.text} text-center mb-3`}>{album.title}</p>
-                          <p className={`text-sm ${themeClasses.textSecondary} leading-relaxed text-center sm:text-left`}>
-                            {album.description || "No description available"}
-                          </p>
-                        </>
-                      )}
-
-                      {/* Song Credits & Details */}
-                      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                        <h4 className={`sm:col-span-2 font-semibold ${themeClasses.text} mb-1`}>Song Credits</h4>
-
-                        {currentTrackData ? (
-                          <>
-                            {currentTrackData.producer && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Produced By</span>
-                                <span className={themeClasses.text}>{currentTrackData.producer}</span>
-                              </div>
-                            )}
-                            {currentTrackData.masteringEngineer && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Mastered By</span>
-                                <span className={themeClasses.text}>{currentTrackData.masteringEngineer}</span>
-                              </div>
-                            )}
-                            {currentTrackData.mixingEngineer && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Mixed By</span>
-                                <span className={themeClasses.text}>{currentTrackData.mixingEngineer}</span>
-                              </div>
-                            )}
-                            {currentTrackData.writer && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Written By</span>
-                                <span className={themeClasses.text}>{currentTrackData.writer}</span>
-                              </div>
-                            )}
-                            {currentTrackData.featuredArtists && currentTrackData.featuredArtists.trim() && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Featuring</span>
-                                <span className={themeClasses.text}>{currentTrackData.featuredArtists}</span>
-                              </div>
-                            )}
-                            {currentTrackData.backingVocals && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Backing Vocals</span>
-                                <span className={themeClasses.text}>{currentTrackData.backingVocals}</span>
-                              </div>
-                            )}
-                            {currentTrackData.instrumentation && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Instrumentation</span>
-                                <span className={themeClasses.text}>{currentTrackData.instrumentation}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                              <span className={themeClasses.textSecondary}>Duration</span>
-                              <span className={themeClasses.text}>{formatDuration(currentTrackData.durationMs)}</span>
-                            </div>
-                            {currentTrackData.specialCredits && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Special Credits</span>
-                                <span className={themeClasses.text}>{currentTrackData.specialCredits}</span>
-                              </div>
-                            )}
-                            {currentTrackData.releaseDate && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Release Date</span>
-                                <span className={themeClasses.text}>{formatDate(currentTrackData.releaseDate)}</span>
-                              </div>
-                            )}
-                          </>
-                        ) : album.credits ? (
-                          <div className="sm:col-span-2 whitespace-pre-wrap rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                            <span className={themeClasses.text}>{album.credits}</span>
-                          </div>
-                        ) : (
-                          <div className="sm:col-span-2 text-center">
-                            <span className={themeClasses.textSecondary}>No track credits available</span>
-                          </div>
-                        )}
-
-                        {!currentTrackData && (
-                          <>
-                            <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                              <span className={themeClasses.textSecondary}>Release Date</span>
-                              <span className={themeClasses.text}>{formatDate(album.release_date)}</span>
-                            </div>
-                            {album.copyright_info && (
-                              <div className="flex items-center justify-between rounded-lg px-3 py-2 border border-transparent hover:border-slate-200">
-                                <span className={themeClasses.textSecondary}>Copyright</span>
-                                <span className={themeClasses.text}>{album.copyright_info}</span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      {/* Color Dots */}
-                      <div className="flex justify-center mt-8">
-                        <div className="flex gap-1">
-                          {[...Array(4)].map((_, i) => (
-                            <div
-                              key={i}
-                              className={`w-2 h-2 rounded-full ${
-                                album.color?.includes("purple")
-                                  ? "bg-purple-500"
-                                  : album.color?.includes("blue")
-                                  ? "bg-blue-500"
-                                  : album.color?.includes("red")
-                                  ? "bg-red-500"
-                                  : "bg-green-500"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
+              {/* Additional Info */}
+              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
+                <h4 className="text-sm font-semibold text-slate-900 mb-3">
+                  Album Details
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Affiliation</span>
+                    <span className="text-slate-900">
+                      {album.affiliation || "Music Label"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Status</span>
+                    <span className="text-slate-900">
+                      {album.is_published ? "Published" : "Unpublished"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Right Column - Plaque */}
-            <div className="lg:col-span-3">
-              <div className={`space-y-6 rounded-2xl p-4 sm:p-5 border ${themeClasses.border} ${themeClasses.card} shadow-sm`}>
-                {loadingAlbum ? (
-                  <>
-                    <Box className="w-full aspect-square" />
-                    <Box className="h-7 w-2/3 mx-auto" />
-                    <div className="space-y-3">
-                      <Box className="h-4 w-full" />
-                      <Box className="h-4 w-5/6" />
-                      <Box className="h-4 w-4/6" />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <img
-                      src={matchedPlaque?.plaque_image_url || album.cover_art}
-                      alt={matchedPlaque ? `${matchedPlaque.plaque_type} Plaque` : "Album Art"}
-                      className="w-full aspect-square rounded-xl shadow-md object-cover"
-                      loading="lazy"
-                    />
-                    <div>
-                      <h3 className={`text-2xl font-bold ${themeClasses.text} text-center mb-6`}>
-                        {matchedPlaque ? `${matchedPlaque.plaque_type} Plaque` : "Select a Plaque"}
-                      </h3>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Selected Amount</span>
-                          <span className={`font-bold ${themeClasses.text}`}>
-                            ${selectedAmount.toLocaleString()}
-                          </span>
-                        </div>
-
-                        {matchedPlaque ? (
-                          <>
-                            <div className="flex items-center justify-between">
-                              <span className={themeClasses.textSecondary}>Price Range</span>
-                              <span className={`font-bold ${themeClasses.text}`}>
-                                {matchedPlaque.plaque_price_range}
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className={themeClasses.textSecondary}>Plaque Type</span>
-                              <span className={`font-bold ${themeClasses.text}`}>
-                                {matchedPlaque.plaque_type}
-                              </span>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="text-center">
-                            <span className={themeClasses.textSecondary}>
-                              Move the slider to match a plaque range.
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                          <span className={themeClasses.textSecondary}>Status</span>
-                          <span className={`font-bold ${themeClasses.text}`}>
-                            {album.is_published ? "Published" : "Unpublished"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Section - Slider and Support Button */}
-          <div className={`border-t ${themeClasses.border} mt-8 pt-8 space-y-6`}>
-            <div className="flex items-center gap-4">
-              <div className="min-w-[3.5rem] text-xs font-medium text-slate-500">
-                ${sliderMin.toLocaleString()}
-              </div>
-              <input
-                type="range"
-                min={sliderMin}
-                max={sliderMax}
-                value={selectedAmount}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setSelectedAmount(clamp(val, sliderMin, sliderMax));
-                }}
-                className="flex-1 h-2 appearance-none rounded-full bg-slate-200 dark:bg-gray-800 accent-green-500"
-              />
-              <div className="min-w-[3.5rem] text-right text-xs font-medium text-slate-500">
-                ${sliderMax.toLocaleString()}
-              </div>
-              <span className="text-2xl font-bold text-green-600 min-w-28 text-right tabular-nums">
-                ${selectedAmount.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="flex justify-center">
-              <button
-                onClick={() => setIsPaymentModalOpen(true)}
-                className="px-12 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                SUPPORT
-              </button>
-            </div>
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Payment Modal */}
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
