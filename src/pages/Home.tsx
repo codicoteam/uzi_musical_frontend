@@ -5,9 +5,9 @@ import {
   Menu,
   ChevronDown,
   Disc,
-  Play,
   Search,
   X,
+  Eye,
 } from "lucide-react";
 import Sidebar from "../components/sidebar";
 import { useNavigate } from "react-router-dom";
@@ -92,8 +92,6 @@ const HomeScreen = () => {
       : 0;
   const totalTracks =
     albums?.reduce((sum, album) => sum + (album.track_count || 0), 0) || 0;
-
-  const totalStreams = 2456789;
 
   const firstName = "John Doe";
 
@@ -245,18 +243,6 @@ const HomeScreen = () => {
         : "bg-gradient-to-br from-red-500/10 to-red-600/5",
       borderColor: isDarkMode ? "border-red-700/50" : "border-red-200/50",
       icon: Music,
-    },
-    {
-      label: "Total Streams",
-      value: totalStreams,
-      unit: "",
-      trend: "+22%",
-      color: "from-red-500 to-red-600",
-      bgColor: isDarkMode
-        ? "bg-red-900/20"
-        : "bg-gradient-to-br from-red-500/10 to-red-600/5",
-      borderColor: isDarkMode ? "border-red-700/50" : "border-red-200/50",
-      icon: Play,
     },
   ];
 
@@ -467,46 +453,58 @@ const HomeScreen = () => {
           )}
 
           {/* Stats Cards */}
+          {/* Stats Cards */}
           {!isSearching && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {metrics.map((metric, index) => {
                 const IconComponent = metric.icon;
                 return (
                   <div
                     key={index}
-                    className={`relative overflow-hidden rounded-xl p-4 transition-all duration-300 ${metric.bgColor} ${metric.borderColor} border backdrop-blur-sm`}
+                    className={`relative overflow-hidden rounded-xl p-4 sm:p-5 transition-all duration-300 ${metric.bgColor} ${metric.borderColor} border-2 backdrop-blur-sm hover:scale-105 hover:shadow-xl hover:shadow-red-500/20`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div
-                        className={`p-2 rounded-lg ${
-                          isDarkMode ? "bg-white/10" : "bg-white/20"
-                        }`}
-                      >
-                        <IconComponent
-                          className={`w-4 h-4 ${
-                            isDarkMode ? "text-white" : "text-slate-700"
-                          }`}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-green-600">
-                        {metric.trend}
-                      </span>
-                    </div>
+                    {/* Vinyl-inspired circles in background */}
+                    <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-linear-to-br from-red-500/10 to-transparent rounded-full -mr-10 sm:-mr-12 -mt-10 sm:-mt-12"></div>
+                    <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-20 sm:h-20 bg-linear-to-tr from-red-500/5 to-transparent rounded-full -ml-8 sm:-ml-10 -mb-8 sm:-mb-10"></div>
 
-                    <div className="space-y-1">
-                      <div
-                        className={`text-2xl font-bold ${
-                          isDarkMode ? "text-white" : "text-slate-800"
-                        }`}
-                      >
-                        {animatedValues[index].toLocaleString()}
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-3">
+                        <div
+                          className={`p-2 sm:p-2.5 rounded-lg bg-linear-to-br ${metric.color} shadow-lg`}
+                        >
+                          <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        </div>
+                        <div className="flex items-center space-x-0.5 sm:space-x-1">
+                          <div className="w-0.5 sm:w-1 h-4 sm:h-5 bg-red-500 rounded-full animate-pulse"></div>
+                          <div
+                            className="w-0.5 sm:w-1 h-3 bg-red-400 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="w-0.5 sm:w-1 h-5 sm:h-6 bg-red-500 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
+                        </div>
                       </div>
-                      <div
-                        className={`text-xs ${
-                          isDarkMode ? "text-gray-300" : "text-slate-600"
-                        }`}
-                      >
-                        {metric.label}
+
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <div
+                          className={`text-2xl sm:text-3xl font-bold bg-linear-to-r ${metric.color} bg-clip-text text-transparent`}
+                        >
+                          {animatedValues[index].toLocaleString()}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div
+                            className={`text-xs sm:text-sm font-medium ${
+                              isDarkMode ? "text-gray-300" : "text-slate-600"
+                            }`}
+                          >
+                            {metric.label}
+                          </div>
+                          <span className="text-xs font-semibold text-green-500 bg-green-500/10 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+                            {metric.trend}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -618,10 +616,7 @@ const HomeScreen = () => {
                           {/* Play Button Overlay */}
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                             <div className="p-3 rounded-full bg-white shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-200">
-                              <Play
-                                className="w-5 h-5 text-black"
-                                fill="black"
-                              />
+                              <Eye className="w-5 h-5 text-black" />
                             </div>
                           </div>
                         </div>

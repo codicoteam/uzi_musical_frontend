@@ -6,7 +6,6 @@ import {
   Activity,
   Settings,
   LogOut,
-  Music2,
   X,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -67,7 +66,7 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fadeIn">
+        <div className="fixed inset-0 bg-black/60 z-100 flex items-center justify-center animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-slideUp">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -266,27 +265,6 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
         </nav>
 
         {/* Now Playing Mini Card */}
-        <div className="px-3 py-4 shrink-0">
-          <div className="bg-linear-to-br from-red-500 to-red-600 rounded-lg p-4 shadow-lg hover:shadow-xl transition-shadow duration-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-md bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Music2 className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-white/90 uppercase tracking-wide mb-0.5">
-                  Now Playing
-                </div>
-                <div className="text-sm font-semibold text-white truncate">
-                  Ready to groove
-                </div>
-              </div>
-            </div>
-            {/* Mini progress bar */}
-            <div className="mt-3 h-1 bg-white/20 rounded-full overflow-hidden">
-              <div className="h-full w-2/3 bg-white rounded-full animate-pulse-subtle"></div>
-            </div>
-          </div>
-        </div>
 
         {/* Footer */}
         <div className="px-6 py-3 shrink-0">
