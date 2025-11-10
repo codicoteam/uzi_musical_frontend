@@ -158,7 +158,6 @@ const AlbumDetailScreen = () => {
     return "Unknown Genre";
   };
 
-
   const handleTrackClick = (track: Track) => {
     setSelectedTrack(track);
   };
@@ -370,7 +369,7 @@ const AlbumDetailScreen = () => {
                           About This Track
                         </h4>
                         <p
-                          className={`text-sm ${themeClasses.textSecondary} leading-relaxed`}
+                          className={`text-sm ${themeClasses.textSecondary} leading-relaxed wrap-break-word overflow-wrap-anywhere`}
                         >
                           {selectedTrack.trackDescription}
                         </p>

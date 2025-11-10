@@ -86,9 +86,6 @@ const parsePriceRange = (range: string): [number, number] | null => {
   return null;
 };
 
-const clamp = (val: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, val));
-
 const AlbumPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -107,6 +104,7 @@ const AlbumPage = () => {
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [, setTracksError] = useState<string | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   //Debug
   useEffect(() => {
@@ -388,9 +386,6 @@ const AlbumPage = () => {
               <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
-                      Now Playing
-                    </p>
                     <p className="text-sm text-slate-900">
                       Track {tracks.length ? currentTrack + 1 : 0} of{" "}
                       {tracks.length || album.track_count}
@@ -453,7 +448,7 @@ const AlbumPage = () => {
                         </div>
 
                         {currentTrackData.trackDescription && (
-                          <p className="text-sm text-slate-600 leading-relaxed">
+                          <p className="text-sm text-slate-600 leading-relaxed wrap-break-word overflow-hidden">
                             {currentTrackData.trackDescription}
                           </p>
                         )}
@@ -599,12 +594,13 @@ const AlbumPage = () => {
               </div>
 
               {/* Album Description */}
+
               {album.description && (
                 <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
                   <h3 className="text-lg font-bold text-slate-900 mb-3">
                     About
                   </h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
+                  <p className="text-sm text-slate-600 leading-relaxed wrap-break-word overflow-wrap-anywhere max-w-full">
                     {album.description}
                   </p>
                 </div>
@@ -684,13 +680,60 @@ const AlbumPage = () => {
                     type="range"
                     min={sliderMin}
                     max={sliderMax}
-                    value={selectedAmount}
+                    value={
+                      selectedAmount > sliderMax ? sliderMax : selectedAmount
+                    }
                     onChange={(e) => {
                       const val = Number(e.target.value);
-                      setSelectedAmount(clamp(val, sliderMin, sliderMax));
+                      setSelectedAmount(val);
+                      if (val >= sliderMax) {
+                        setShowCustomInput(true);
+                      }
                     }}
                     className="w-full h-1 bg-slate-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-green-600 [&::-webkit-slider-thumb]:cursor-pointer"
                   />
+
+                  {/* Custom Amount Input - Shows when activated */}
+                  {showCustomInput && (
+                    <div className="pt-2 border-t border-slate-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs text-slate-500 uppercase tracking-wider">
+                          Custom Amount
+                        </label>
+                        <button
+                          onClick={() => {
+                            setShowCustomInput(false);
+                            setSelectedAmount(sliderMax);
+                          }}
+                          className="text-xs text-slate-400 hover:text-slate-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-900 font-semibold">
+                          $
+                        </span>
+                        <input
+                          type="number"
+                          min={sliderMin}
+                          value={selectedAmount}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            if (val >= sliderMin) {
+                              setSelectedAmount(val);
+                            }
+                          }}
+                          className="w-full pl-7 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent text-slate-900"
+                          placeholder="Enter amount"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Enter any amount $1 or higher
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     onClick={() => {
                       // Check for token in userLogin object
