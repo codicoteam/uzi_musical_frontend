@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 import userService from "../services/createaccount_service";
 
 export default function CreateAccountScreen() {
@@ -7,11 +8,12 @@ export default function CreateAccountScreen() {
     userName: "",
     email: "",
     password: "",
-    role: "customer", // default role
+    role: "fan", // default role
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -72,7 +74,7 @@ export default function CreateAccountScreen() {
         userName: "",
         email: "",
         password: "",
-        role: "customer",
+        role: "fan",
       });
 
       setIsLoading(false);
@@ -82,8 +84,13 @@ export default function CreateAccountScreen() {
         text: "Account created successfully!",
         icon: "success",
         confirmButtonColor: "#dc2626",
-        confirmButtonText: "Continue",
+        timer: 2000,
+        showConfirmButton: false,
+        timerProgressBar: true,
       });
+
+      // Navigate to home page
+      navigate("/home");
     } catch (error: any) {
       console.error("Registration failed:", error);
       console.error("Error details:", {
@@ -258,7 +265,7 @@ export default function CreateAccountScreen() {
                 disabled={isLoading}
                 required
               >
-                <option value="customer">Customer</option>
+                <option value="fan">Fan</option>
                 <option value="artist">Artist</option>
                 <option value="admin">Admin</option>
               </select>
@@ -295,7 +302,8 @@ export default function CreateAccountScreen() {
                     ></path>
                   </svg>
                   Creating Account...
-                </div>              ) : (
+                </div>
+              ) : (
                 "Create Account"
               )}
             </button>
