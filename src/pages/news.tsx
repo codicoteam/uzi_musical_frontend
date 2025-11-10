@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/sidebar";
 import newsService from "../services/news_service";
+import profileService from "../services/profile_service";
 
 interface NewsItem {
   _id: string;
@@ -42,7 +43,15 @@ const MusicNewsScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const userName = "John Doe";
+  // User state - same as other screens
+  const [userProfile, setUserProfile] = useState<{
+    firstName: string;
+    lastName: string;
+    profilePicture: string;
+    role: string;
+    userName: string;
+  } | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const themeClasses = {
     bg: isDarkMode
@@ -56,6 +65,109 @@ const MusicNewsScreen = () => {
   };
 
   const [updates, setUpdates] = useState<any[]>([]);
+
+  // Fetch user profile on component mount - same as other screens
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setProfileLoading(true);
+        
+        // First try to get profile data from profile service
+        try {
+          const profileData = await profileService.getMyProfile();
+          console.log("Profile data from service:", profileData);
+          
+          if (profileData && profileData.success && profileData.profile) {
+            const { profile } = profileData;
+            
+            // Extract user information from profile data - PRIORITIZE userName over firstName/lastName
+            const userInfo = {
+              firstName: profile.userName || profile.firstName || profile.userId?.userName || 'User',
+              lastName: '', // Don't use lastName, we want to display only the userName
+              profilePicture: profile.profilePicture || '',
+              role: profile.role || profile.userId?.role || '',
+              userName: profile.userName || profile.userId?.userName || 'user'
+            };
+            
+            console.log("Extracted user info:", userInfo);
+            setUserProfile(userInfo);
+            setProfileLoading(false);
+            return;
+          }
+        } catch (profileError) {
+          console.error("Error fetching profile from service:", profileError);
+        }
+
+        // Fallback to localStorage login data
+        const storedUser = localStorage.getItem("userLogin");
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          console.log("User data from localStorage:", userData);
+          
+          if (userData.user) {
+            setUserProfile({
+              firstName: userData.user.userName || 'User', // Use userName as firstName for display
+              lastName: '',
+              profilePicture: userData.user.profilePicture || '',
+              role: userData.user.role || '',
+              userName: userData.user.userName || 'User'
+            });
+            setProfileLoading(false);
+            return;
+          }
+        }
+
+        // Final fallback if both methods fail
+        setUserProfile({
+          firstName: 'User',
+          lastName: '',
+          profilePicture: '',
+          role: '',
+          userName: 'user'
+        });
+      } catch (error) {
+        console.error("Error in user profile setup:", error);
+        setUserProfile({
+          firstName: 'User',
+          lastName: '',
+          profilePicture: '',
+          role: '',
+          userName: 'user'
+        });
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  // Get user's initials for fallback avatar - use userName first
+  const getUserInitials = () => {
+    if (!userProfile) return "U";
+    // Use userName first, then fallback to firstName
+    const userNameChar = userProfile.userName?.charAt(0) || '';
+    const firstNameChar = userProfile.firstName?.charAt(0) || '';
+    return (userNameChar || firstNameChar).toUpperCase() || 'U';
+  };
+
+  // Get display name - PRIORITIZE userName over firstName/lastName
+  const getDisplayName = () => {
+    if (!userProfile) return "User";
+    // Always return userName if available, otherwise fallback to firstName
+    return userProfile.userName || userProfile.firstName || "User";
+  };
+
+  // Format role for display
+  const getDisplayRole = () => {
+    if (!userProfile) return "";
+    return userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1);
+  };
+
+  // Check if profile picture is a valid Supabase URL
+  const isValidProfilePicture = (url: string) => {
+    return url && url.startsWith('https://') && url.includes('supabase');
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -204,42 +316,98 @@ const MusicNewsScreen = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* User Profile - Same as other screens */}
               <div
                 className={`hidden sm:flex items-center gap-3 pl-3 border-l ${themeClasses.border}`}
               >
-                <div className="text-right">
-                  <div className={`text-sm font-medium ${themeClasses.text}`}>
-                    {userName}
+                {!profileLoading && userProfile ? (
+                  <>
+                    <div className="text-right">
+                      <div className={`text-sm font-medium ${themeClasses.text}`}>
+                        {getDisplayName()}
+                      </div>
+                      <div className={`text-xs ${themeClasses.textSecondary}`}>
+                        {getDisplayRole()}
+                      </div>
+                    </div>
+                    <div className="relative">
+                      {isValidProfilePicture(userProfile.profilePicture) ? (
+                        <img
+                          src={userProfile.profilePicture}
+                          alt={getDisplayName()}
+                          className="w-9 h-9 rounded-xl object-cover shadow-lg"
+                          onError={(e) => {
+                            console.error("Failed to load profile picture:", userProfile.profilePicture);
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : null}
+                      
+                      {/* Fallback avatar with initials - shown if no valid profile picture */}
+                      {!isValidProfilePicture(userProfile.profilePicture) && (
+                        <div className="w-9 h-9 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
+                          <span className="text-white font-medium text-xs">
+                            {getUserInitials()}
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 ${themeClasses.textSecondary}`}
+                    />
+                  </>
+                ) : (
+                  // Loading state for user profile
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className={`text-sm font-medium ${themeClasses.text} animate-pulse`}>
+                        Loading...
+                      </div>
+                      <div className={`text-xs ${themeClasses.textSecondary} animate-pulse`}>
+                        User
+                      </div>
+                    </div>
+                    <div className="w-9 h-9 bg-gray-300 rounded-xl animate-pulse"></div>
+                    <ChevronDown
+                      className={`w-4 h-4 ${themeClasses.textSecondary}`}
+                    />
                   </div>
-                  <div className={`text-xs ${themeClasses.textSecondary}`}>
-                    Admin
-                  </div>
-                </div>
-                <div className="relative">
-                  <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium text-xs">
-                      {userName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </span>
-                  </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 ${themeClasses.textSecondary}`}
-                />
+                )}
               </div>
+              
+              {/* Mobile User Profile */}
               <div className="sm:hidden relative">
-                <div className="w-9 h-9 bg-linear-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium text-xs">
-                    {userName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </span>
-                </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                {!profileLoading && userProfile ? (
+                  <>
+                    {isValidProfilePicture(userProfile.profilePicture) ? (
+                      <img
+                        src={userProfile.profilePicture}
+                        alt={getDisplayName()}
+                        className="w-9 h-9 rounded-xl object-cover shadow-lg"
+                        onError={(e) => {
+                          console.error("Failed to load profile picture:", userProfile.profilePicture);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    
+                    {/* Fallback avatar with initials - shown if no valid profile picture */}
+                    {!isValidProfilePicture(userProfile.profilePicture) && (
+                      <div className="w-9 h-9 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
+                        <span className="text-white font-medium text-xs">
+                          {getUserInitials()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                  </>
+                ) : (
+                  // Loading state for user profile
+                  <div className="w-9 h-9 bg-gray-300 rounded-xl animate-pulse"></div>
+                )}
               </div>
             </div>
           </div>
@@ -330,7 +498,105 @@ const MusicNewsScreen = () => {
               {/* News Feed */}
               {!loading && !error && newsItems.length > 0 && (
                 <div className="space-y-6 pb-8">
-                  {/* existing news feed code */}
+                  {newsItems.map((item) => (
+                    <div
+                      key={item._id}
+                      id={`news-${item._id}`}
+                      className={`bg-white rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 ${
+                        selectedNews === item._id
+                      }`}
+                    >
+                      {/* Image */}
+                      <div className="relative aspect-video sm:aspect-21/9 overflow-hidden">
+                        <img
+                          src={
+                            item.image_url ||
+                            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=600&fit=crop"
+                          }
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                            {item.category}
+                          </span>
+                        </div>
+                        <button className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform">
+                          <Play className="w-4 h-4 text-red-500 fill-red-500" />
+                        </button>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 sm:p-6">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-3">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>{item.category}</span>
+                          <span>•</span>
+                          <span className="text-red-600 font-medium">
+                            {item.created_at}
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
+                          {item.title}
+                        </h3>
+
+                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">
+                          {item.description}
+                        </p>
+
+                        {expandedNews.has(item._id) && (
+                          <div className="mb-4 p-4 bg-red-50 rounded-xl">
+                            <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
+                              {item.description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-5">
+                            <button
+                              onClick={() => toggleLike(item._id)}
+                              className="flex items-center gap-1.5 group"
+                            >
+                              <Heart
+                                className={`w-5 h-5 transition-all ${
+                                  likedPosts.has(item._id)
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-gray-400 group-hover:text-red-500"
+                                }`}
+                              />
+                              <span className="text-sm text-gray-600 font-medium">
+                                {/* {likedPosts.has(item._id)
+                                  ? item.likes + 1
+                                  : item.likes} */}
+                              </span>
+                            </button>
+
+                            <button className="flex items-center gap-1.5 group">
+                              <MessageCircle className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                              <span className="text-sm text-gray-600 font-medium">
+                                {item.comments}
+                              </span>
+                            </button>
+
+                            <button className="flex items-center gap-1.5 group">
+                              <Share2 className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => toggleExpand(item._id)}
+                            className="text-red-500 hover:text-red-600 font-medium text-sm"
+                          >
+                            {expandedNews.has(item._id) ? "Less" : "More"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -343,109 +609,6 @@ const MusicNewsScreen = () => {
                   <p className="text-gray-600 font-medium">No news available</p>
                 </div>
               )}
-
-              {/* News Feed */}
-              <div className="space-y-6 pb-8">
-                {newsItems.map((item) => (
-                  <div
-                    key={item._id}
-                    id={`news-${item._id}`}
-                    className={`bg-white rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 ${
-                      selectedNews === item._id
-                    }`}
-                  >
-                    {/* Image */}
-                    <div className="relative aspect-video sm:aspect-21/9 overflow-hidden">
-                      <img
-                        src={
-                          item.image_url ||
-                          "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&h=600&fit=crop"
-                        }
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                          {item.category}
-                        </span>
-                      </div>
-                      <button className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform">
-                        <Play className="w-4 h-4 text-red-500 fill-red-500" />
-                      </button>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-5 sm:p-6">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-3">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>{item.category}</span>
-                        <span>•</span>
-                        <span className="text-red-600 font-medium">
-                          {item.created_at}
-                        </span>
-                      </div>
-
-                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-                        {item.title}
-                      </h3>
-
-                      <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">
-                        {item.description}
-                      </p>
-
-                      {expandedNews.has(item._id) && (
-                        <div className="mb-4 p-4 bg-red-50 rounded-xl">
-                          <p className="text-gray-700 text-sm sm:text-base leading-relaxed">
-                            {item.description}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Actions */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-5">
-                          <button
-                            onClick={() => toggleLike(item._id)}
-                            className="flex items-center gap-1.5 group"
-                          >
-                            <Heart
-                              className={`w-5 h-5 transition-all ${
-                                likedPosts.has(item._id)
-                                  ? "fill-red-500 text-red-500"
-                                  : "text-gray-400 group-hover:text-red-500"
-                              }`}
-                            />
-                            <span className="text-sm text-gray-600 font-medium">
-                              {/* {likedPosts.has(item._id)
-                                ? item.likes + 1
-                                : item.likes} */}
-                            </span>
-                          </button>
-
-                          <button className="flex items-center gap-1.5 group">
-                            <MessageCircle className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
-                            <span className="text-sm text-gray-600 font-medium">
-                              {item.comments}
-                            </span>
-                          </button>
-
-                          <button className="flex items-center gap-1.5 group">
-                            <Share2 className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
-                          </button>
-                        </div>
-
-                        <button
-                          onClick={() => toggleExpand(item._id)}
-                          className="text-red-500 hover:text-red-600 font-medium text-sm"
-                        >
-                          {expandedNews.has(item._id) ? "Less" : "More"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
 
               {/* Load More */}
               <div className="text-center pb-8">
