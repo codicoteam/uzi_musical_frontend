@@ -261,27 +261,31 @@ const AlbumScreen = () => {
       </div>
 
       {/* MAIN */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden lg:ml-[290px] pl-6 sm:pl-8">
-        {/* HEADER */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden lg:ml-[290px] pl-4 sm:pl-6 lg:pl-8">
+        {/* HEADER - Improved mobile padding */}
         <header
-          className={`${themeClasses.header} backdrop-blur-xl shadow-sm border-b ${themeClasses.border} px-4 sm:px-6 py-4 fixed top-0 left-0 lg:left-[270px] right-0 z-30`}
+          className={`${themeClasses.header} backdrop-blur-xl shadow-sm border-b ${themeClasses.border} px-3 sm:px-4 lg:px-6 py-3 sm:py-4 fixed top-0 left-0 lg:left-[270px] right-0 z-30`}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden mr-4 p-2 rounded-xl bg-slate-100/50 hover:bg-opacity-80"
+                className="lg:hidden mr-2 sm:mr-4 p-2 rounded-xl bg-slate-100/50 hover:bg-opacity-80"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <span className={themeClasses.textSecondary}>Home</span>
-              <span className="text-slate-400">›</span>
-              <span className={`${themeClasses.text} font-medium`}>Albums</span>
+              <span className={`${themeClasses.textSecondary} text-xs sm:text-sm`}>
+                Home
+              </span>
+              <span className="text-slate-400 text-xs sm:text-sm">›</span>
+              <span className={`${themeClasses.text} font-medium text-sm sm:text-base`}>
+                Albums
+              </span>
             </div>
 
-            <div className="flex items-center space-x-4">
-              {/* Search Bar - Hidden on mobile */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Search Bar - Hidden on mobile, shown in content area instead */}
               <div className="hidden md:flex items-center">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -290,72 +294,99 @@ const AlbumScreen = () => {
                     placeholder="Search albums..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-64 pl-10 pr-4 py-2 rounded-full bg-slate-100 border-0 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                    className="w-48 lg:w-64 pl-10 pr-4 py-2 rounded-full bg-slate-100 border-0 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                   />
                 </div>
               </div>
 
-              {/* User Profile - Same as HomeScreen */}
-              <div className="flex items-center space-x-3 pl-4 border-l">
-                {!profileLoading && userProfile ? (
-                  <>
-                    <div className="text-right hidden sm:block">
-                      <div className={`text-sm font-semibold ${themeClasses.text}`}>
+              {/* User Profile - Optimized for mobile */}
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                {/* Mobile User Info - Compact version */}
+                <div className="md:hidden text-right">
+                  {!profileLoading && userProfile ? (
+                    <>
+                      <div className={`text-xs font-semibold ${themeClasses.text} leading-tight line-clamp-1 max-w-[80px]`}>
                         {getDisplayName()}
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary}`}>
+                      <div className={`text-[10px] ${themeClasses.textSecondary} leading-tight`}>
                         {getDisplayRole()}
                       </div>
-                    </div>
-                    <div className="relative">
-                      {isValidProfilePicture(userProfile.profilePicture) ? (
-                        <img
-                          src={userProfile.profilePicture}
-                          alt={getDisplayName()}
-                          className="w-10 h-10 rounded-xl object-cover shadow-lg"
-                          onError={(e) => {
-                            console.error("Failed to load profile picture:", userProfile.profilePicture);
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : null}
-                      
-                      {/* Fallback avatar with initials - shown if no valid profile picture */}
-                      {!isValidProfilePicture(userProfile.profilePicture) && (
-                        <div className="w-10 h-10 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
-                          <span className="text-white font-semibold text-sm">
-                            {getUserInitials()}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full shadow-sm"></div>
-                    </div>
-                    <ChevronDown className={`w-4 h-4 ${themeClasses.textSecondary}`} />
-                  </>
-                ) : (
-                  // Loading state for user profile
-                  <div className="flex items-center space-x-3">
-                    <div className="text-right hidden sm:block">
-                      <div className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}>
+                    </>
+                  ) : (
+                    <div className="text-right">
+                      <div className={`text-xs font-semibold ${themeClasses.text} animate-pulse leading-tight`}>
                         Loading...
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary} animate-pulse`}>
+                      <div className={`text-[10px] ${themeClasses.textSecondary} animate-pulse leading-tight`}>
                         User
                       </div>
                     </div>
-                    <div className="w-10 h-10 bg-gray-300 rounded-xl animate-pulse"></div>
-                    <ChevronDown className={`w-4 h-4 ${themeClasses.textSecondary}`} />
+                  )}
+                </div>
+
+                {/* Desktop User Info with Avatar */}
+                <div className="hidden md:flex items-center space-x-3 pl-3 lg:pl-4 border-l">
+                  <div className="text-right">
+                    {!profileLoading && userProfile ? (
+                      <>
+                        <div className={`text-sm font-semibold ${themeClasses.text}`}>
+                          {getDisplayName()}
+                        </div>
+                        <div className={`text-xs ${themeClasses.textSecondary}`}>
+                          {getDisplayRole()}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}>
+                          Loading...
+                        </div>
+                        <div className={`text-xs ${themeClasses.textSecondary} animate-pulse`}>
+                          User
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
+
+                  <div className="relative">
+                    {!profileLoading && userProfile && isValidProfilePicture(userProfile.profilePicture) ? (
+                      <img
+                        src={userProfile.profilePicture}
+                        alt={getDisplayName()}
+                        className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl object-cover shadow-lg"
+                        onError={(e) => {
+                          console.error("Failed to load profile picture:", userProfile.profilePicture);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    
+                    {/* Fallback avatar with initials - shown if no valid profile picture */}
+                    {!profileLoading && userProfile && !isValidProfilePicture(userProfile.profilePicture) && (
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
+                        <span className="text-white font-semibold text-xs lg:text-sm">
+                          {getUserInitials()}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Loading state for profile picture */}
+                    {profileLoading && (
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-xl animate-pulse"></div>
+                    )}
+                    
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 bg-green-400 border-2 border-white rounded-full shadow-sm"></div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 ${themeClasses.textSecondary}`} />
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* CONTENT */}
-        <main className="flex-1 overflow-y-auto pt-[84px] pb-8 pr-4 sm:pr-6">
-          {/* Mobile Search */}
+        {/* CONTENT - Improved mobile spacing */}
+        <main className="flex-1 overflow-y-auto pt-[68px] sm:pt-[76px] lg:pt-[84px] pb-4 sm:pb-6 lg:pb-8 pr-3 sm:pr-4 lg:pr-6">
+          {/* Mobile Search - Moved to content area */}
           <div className="md:hidden mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -364,15 +395,16 @@ const AlbumScreen = () => {
                 placeholder="Search albums..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full bg-white/80 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white/80 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
               />
             </div>
           </div>
 
-          <div className="flex space-x-4 pb-3 border-b sticky top-0 bg-opacity-80 backdrop-blur-md z-10">
+          {/* Tabs - Improved mobile styling */}
+          <div className="flex space-x-3 pb-3 border-b sticky top-0 bg-opacity-80 backdrop-blur-md z-10 -mt-1 pt-1">
             <button
               onClick={() => setActiveTab("collection")}
-              className={`capitalize px-3 py-2 rounded-lg font-medium transition-all duration-200 ${
+              className={`capitalize px-3 py-1.5 sm:py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
                 activeTab === "collection"
                   ? "bg-red-600 text-white shadow-md"
                   : `${themeClasses.textSecondary} hover:bg-slate-100`
@@ -390,52 +422,53 @@ const AlbumScreen = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
               >
+                {/* Header Section - Improved mobile layout */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4">
                   <div>
-                    <h1 className={`text-2xl font-bold ${themeClasses.text}`}>
+                    <h1 className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
                       My Album Collection
                     </h1>
-                    <p className={`text-sm ${themeClasses.textSecondary} mt-1`}>
+                    <p className={`text-xs sm:text-sm ${themeClasses.textSecondary} mt-1`}>
                       {filteredAlbums.length}{" "}
                       {filteredAlbums.length === 1 ? "album" : "albums"}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    {/* View Toggle */}
+                  <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-normal">
+                    {/* View Toggle - Improved mobile sizing */}
                     <div
                       className={`flex rounded-lg border ${themeClasses.border} p-1 bg-white/50`}
                     >
                       <button
                         onClick={() => setViewMode("grid")}
-                        className={`p-2 rounded transition-colors ${
+                        className={`p-1.5 sm:p-2 rounded transition-colors ${
                           viewMode === "grid"
                             ? "bg-red-600 text-white"
                             : `${themeClasses.text} ${themeClasses.hover}`
                         }`}
                       >
-                        <Grid className="w-4 h-4" />
+                        <Grid className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                       <button
                         onClick={() => setViewMode("list")}
-                        className={`p-2 rounded transition-colors ${
+                        className={`p-1.5 sm:p-2 rounded transition-colors ${
                           viewMode === "list"
                             ? "bg-red-600 text-white"
                             : `${themeClasses.text} ${themeClasses.hover}`
                         }`}
                       >
-                        <List className="w-4 h-4" />
+                        <List className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Album Grid */}
+                {/* Album Grid - Improved mobile grid */}
                 {!loading &&
                   !error &&
                   filteredAlbums.length > 0 &&
                   viewMode === "grid" && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5 mt-6">
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 xl:gap-5 mt-4 sm:mt-6">
                       {filteredAlbums.map((album, index) => (
                         <motion.div
                           key={album._id}
@@ -443,7 +476,7 @@ const AlbumScreen = () => {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
                           whileHover={{ y: -4, scale: 1.02 }}
-                          className={`${themeClasses.card} backdrop-blur-sm cursor-pointer border ${themeClasses.border} rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group`}
+                          className={`${themeClasses.card} backdrop-blur-sm cursor-pointer border ${themeClasses.border} rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group`}
                           onClick={() => handleAlbumClick(album)}
                         >
                           <div className="relative aspect-square overflow-hidden bg-slate-200">
@@ -457,9 +490,9 @@ const AlbumScreen = () => {
                             />
                             <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           </div>
-                          <div className="p-3">
+                          <div className="p-2 sm:p-3">
                             <h3
-                              className={`font-semibold ${themeClasses.text} text-sm line-clamp-1 mb-1`}
+                              className={`font-semibold ${themeClasses.text} text-xs sm:text-sm line-clamp-1 mb-1`}
                             >
                               {album.title}
                             </h3>
@@ -486,25 +519,25 @@ const AlbumScreen = () => {
                     </div>
                   )}
 
-                {/* Album List */}
+                {/* Album List - Improved mobile list */}
                 {!loading &&
                   !error &&
                   filteredAlbums.length > 0 &&
                   viewMode === "list" && (
-                    <div className="space-y-2 mt-6">
+                    <div className="space-y-2 mt-4 sm:mt-6">
                       {filteredAlbums.map((album, index) => (
                         <motion.div
                           key={album._id}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03 }}
-                          className={`${themeClasses.card} backdrop-blur-sm rounded-xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 ${themeClasses.hover} cursor-pointer transition-all duration-200 border ${themeClasses.border}`}
+                          className={`${themeClasses.card} backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 flex items-center gap-2 sm:gap-3 lg:gap-4 ${themeClasses.hover} cursor-pointer transition-all duration-200 border ${themeClasses.border}`}
                           onClick={() => handleAlbumClick(album)}
                         >
                           <img
                             src={album.cover_art || "/placeholder.jpg"}
                             alt={album.title}
-                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover shadow-md"
+                            className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-lg object-cover shadow-md flex-shrink-0"
                             onError={(e) => {
                               e.currentTarget.src = cover;
                             }}
@@ -529,7 +562,7 @@ const AlbumScreen = () => {
                             )}
                           </div>
                           {album.track_count > 0 && (
-                            <div className="hidden sm:block text-xs text-slate-500">
+                            <div className="hidden sm:block text-xs text-slate-500 flex-shrink-0 ml-2">
                               {album.track_count} tracks
                             </div>
                           )}
@@ -540,9 +573,9 @@ const AlbumScreen = () => {
 
                 {/* Loading */}
                 {loading && (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-4" />
-                    <p className={themeClasses.textSecondary}>
+                  <div className="flex flex-col items-center justify-center py-16 sm:py-20">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-3 sm:mb-4" />
+                    <p className={`${themeClasses.textSecondary} text-sm sm:text-base`}>
                       Loading albums...
                     </p>
                   </div>
@@ -550,21 +583,21 @@ const AlbumScreen = () => {
 
                 {/* Error */}
                 {error && (
-                  <div className="text-center py-20">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Music className="w-8 h-8 text-red-600" />
+                  <div className="text-center py-16 sm:py-20">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <Music className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
                     </div>
-                    <p className="text-red-600 font-medium">{error}</p>
+                    <p className="text-red-600 font-medium text-sm sm:text-base">{error}</p>
                   </div>
                 )}
 
                 {/* Empty State */}
                 {!loading && !error && filteredAlbums.length === 0 && (
-                  <div className="text-center py-20">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Music className="w-8 h-8 text-slate-400" />
+                  <div className="text-center py-16 sm:py-20">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <Music className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
                     </div>
-                    <p className={`${themeClasses.textSecondary} font-medium`}>
+                    <p className={`${themeClasses.textSecondary} font-medium text-sm sm:text-base`}>
                       {searchQuery
                         ? "No albums found"
                         : "No albums in your library"}

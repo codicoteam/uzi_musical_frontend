@@ -499,7 +499,7 @@ const HomeScreen = () => {
               >
                 {!profileLoading && userProfile ? (
                   <>
-                    <div className="text-right hidden sm:block">
+                    <div className="text-right">
                       <div className={`text-sm font-semibold ${themeClasses.text}`}>
                         {getDisplayName()}
                       </div>
@@ -538,7 +538,7 @@ const HomeScreen = () => {
                 ) : (
                   // Loading state for user profile
                   <div className="flex items-center space-x-3">
-                    <div className="text-right hidden sm:block">
+                    <div className="text-right">
                       <div className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}>
                         Loading...
                       </div>
