@@ -54,6 +54,9 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
     { icon: LogOut, label: "Logout", path: "#", isLogout: true },
   ];
 
+  // Automatically get current year
+  const currentYear = new Date().getFullYear();
+
   return (
     <>
       {/* Mobile sidebar backdrop */}
@@ -264,12 +267,10 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
           })}
         </nav>
 
-        {/* Now Playing Mini Card */}
-
         {/* Footer */}
         <div className="px-6 py-3 shrink-0">
           <div className="text-xs text-gray-500 text-center font-medium">
-            © 2024 Uzinduzi Music
+            © {currentYear} Uzinduzi Music
           </div>
         </div>
 
@@ -279,34 +280,23 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
             from { opacity: 0; }
             to { opacity: 1; }
           }
-          
           @keyframes slideUp {
-            from { 
+            from {
               opacity: 0;
               transform: translateY(20px);
             }
-            to { 
+            to {
               opacity: 1;
               transform: translateY(0);
             }
           }
-          
           @keyframes pulse-subtle {
             0%, 100% { opacity: 0.8; }
             50% { opacity: 1; }
           }
-          
-          .animate-fadeIn {
-            animation: fadeIn 0.2s ease-out;
-          }
-          
-          .animate-slideUp {
-            animation: slideUp 0.3s ease-out;
-          }
-          
-          .animate-pulse-subtle {
-            animation: pulse-subtle 2s ease-in-out infinite;
-          }
+          .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+          .animate-slideUp { animation: slideUp 0.3s ease-out; }
+          .animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
         `}</style>
       </div>
     </>

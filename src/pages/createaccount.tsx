@@ -30,25 +30,52 @@ export default function CreateAccountScreen() {
     setShowPassword(!showPassword);
   };
 
+  // ✅ Enhanced validation function with better email verification
   const validateForm = () => {
-    if (
-      !formData.userName ||
-      !formData.email ||
-      !formData.password ||
-      !formData.role
-    ) {
+    const { userName, email, password, role } = formData;
+
+    if (!userName || !email || !password || !role) {
       setError("Please fill in all fields");
       return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+    // ✅ Comprehensive email validation with domain verification
+    const emailRegex =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|edu|gov|io|co|us|uk|in|ca|de|fr|jp|au|nz|br|mx|es|it|ch|nl|se|no|dk|fi|pt|pl|tr|ru|cn|sg|za|ae)$/i;
+
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address with a real domain (e.g., user@example.com)");
       return false;
     }
 
-    if (formData.password.length < 3) {
-      setError("Password must be at least 3 characters long");
+    // ✅ Check for common fake email domains
+    const fakeEmailDomains = [
+      "example.com",
+      "test.com",
+      "fake.com",
+      "temp.com",
+      "mailinator.com",
+      "guerrillamail.com",
+      "10minutemail.com",
+      "throwaway.com",
+      "yopmail.com",
+      "trashmail.com"
+    ];
+    
+    const emailDomain = email.split('@')[1].toLowerCase();
+    if (fakeEmailDomains.includes(emailDomain)) {
+      setError("Please use a real email address from a legitimate provider");
+      return false;
+    }
+
+    // ✅ Check for disposable email domains via API (optional enhancement)
+    // You can integrate with services like EmailVerification API here
+
+    // ✅ Updated password validation - minimum 5 characters
+    const passwordRegex = /^.{5,}$/;
+
+    if (!passwordRegex.test(password)) {
+      setError("Password must be at least 5 characters long.");
       return false;
     }
 
@@ -200,9 +227,8 @@ export default function CreateAccountScreen() {
                   value={formData.password}
                   onChange={handleChange}
                   className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-gray-50 pr-12"
-                  placeholder="Create a password (min. 3 characters)"
+                  placeholder="Create a password (min. 5 characters)"
                   disabled={isLoading}
-                  minLength={3}
                 />
                 <button
                   type="button"
@@ -247,6 +273,9 @@ export default function CreateAccountScreen() {
                   )}
                 </button>
               </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Must be at least 5 characters long.
+              </p>
             </div>
 
             <div>
