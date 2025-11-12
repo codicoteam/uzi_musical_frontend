@@ -13,21 +13,87 @@ export default function CreateAccountScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({
+    strength: "",
+    score: 0,
+    color: "bg-gray-200",
+    textColor: "text-gray-500"
+  });
   const navigate = useNavigate();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    if (name === "password") {
+      checkPasswordStrength(value);
+    }
+
     if (error) setError("");
+  };
+
+  const checkPasswordStrength = (password: string) => {
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 5) score += 1;
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    let strength = "";
+    let color = "bg-gray-200";
+    let textColor = "text-gray-500";
+
+    if (password.length === 0) {
+      strength = "";
+      color = "bg-gray-200";
+      textColor = "text-gray-500";
+    } else if (password.length < 5) {
+      strength = "Too short";
+      color = "bg-red-500";
+      textColor = "text-red-600";
+    } else if (score <= 2) {
+      strength = "Weak";
+      color = "bg-red-500";
+      textColor = "text-red-600";
+    } else if (score <= 4) {
+      strength = "Medium";
+      color = "bg-yellow-500";
+      textColor = "text-yellow-600";
+    } else {
+      strength = "Strong";
+      color = "bg-green-500";
+      textColor = "text-green-600";
+    }
+
+    // Calculate width percentage for progress bar
+    const widthPercentage = password.length === 0 ? 0 : 
+                           password.length < 5 ? (password.length / 5) * 25 :
+                           score <= 2 ? 33 :
+                           score <= 4 ? 66 : 100;
+
+    setPasswordStrength({
+      strength,
+      score: widthPercentage,
+      color,
+      textColor
+    });
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // ✅ Basic form validation
+  // ✅ Updated password validation (5+ characters)
   const validateForm = () => {
     const { userName, email, password, role } = formData;
 
@@ -44,12 +110,12 @@ export default function CreateAccountScreen() {
       return false;
     }
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{5,}$/;
+    // ✅ Updated password validation (5+ characters with letters and numbers)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{5,}$/;
 
     if (!passwordRegex.test(password)) {
       setError(
-        "Password must be at least 5 characters long and include uppercase, lowercase, number, and special character."
+        "Password must be at least 5 characters long and include both letters and numbers."
       );
       return false;
     }
@@ -264,9 +330,28 @@ export default function CreateAccountScreen() {
                   )}
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Must be at least 5 characters and include uppercase, lowercase, number, and special character.
-              </p>
+
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">
+                      Password strength:
+                    </span>
+                    <span className={`text-sm font-semibold ${passwordStrength.textColor}`}>
+                      {passwordStrength.strength}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                      style={{ width: `${passwordStrength.score}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+             
             </div>
 
             <div>
@@ -286,7 +371,6 @@ export default function CreateAccountScreen() {
               >
                 <option value="fan">Fan</option>
                 <option value="artist">Artist</option>
-                
               </select>
             </div>
 
