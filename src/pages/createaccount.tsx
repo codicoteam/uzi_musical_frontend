@@ -140,7 +140,7 @@ export default function CreateAccountScreen() {
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|edu|gov|io|co|us|uk|in|ca|de|fr|jp|au|nz|br|mx|es|it|ch|nl|se|no|dk|fi|pt|pl|tr|ru|cn|sg|za|ae)$/i;
 
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address with a real domain (e.g., user@example.com)");
+      setError("Please enter a valid email address.");
       return false;
     }
 
@@ -207,7 +207,6 @@ export default function CreateAccountScreen() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -234,14 +233,24 @@ export default function CreateAccountScreen() {
 
       setIsLoading(false);
 
-      await Swal.fire({
-        title: "Success!",
-        text: "Account created successfully!",
-        icon: "success",
+      // ✅ Ask user to verify email with OTP
+      const { value: code } = await Swal.fire({
+        title: "Verify Your Email",
+        html: `
+          <p class="mb-3 text-gray-700">A verification code has been sent to your email: <b>${formData.email}</b></p>
+          <input type="text" id="otp" class="swal2-input" placeholder="Enter your OTP code" />
+        `,
+        confirmButtonText: "Verify",
         confirmButtonColor: "#dc2626",
-        timer: 2000,
-        showConfirmButton: false,
-        timerProgressBar: true,
+        showCancelButton: true,
+        cancelButtonText: "Cancel",
+        preConfirm: () => {
+          const otp = (document.getElementById("otp") as HTMLInputElement)?.value;
+          if (!otp) {
+            Swal.showValidationMessage("Please enter the verification code");
+          }
+          return otp;
+        },
       });
 
       navigate("/home");
@@ -304,7 +313,7 @@ export default function CreateAccountScreen() {
                 name="userName"
                 value={formData.userName}
                 onChange={handleChange}
-                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-gray-50"
+                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 bg-gray-50"
                 placeholder="Choose a username"
                 disabled={isLoading}
               />
@@ -323,7 +332,7 @@ export default function CreateAccountScreen() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-gray-50"
+                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 bg-gray-50"
                 placeholder="Enter your email address"
                 disabled={isLoading}
               />
@@ -349,7 +358,7 @@ export default function CreateAccountScreen() {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   onClick={togglePasswordVisibility}
                   disabled={isLoading}
                 >
@@ -364,7 +373,7 @@ export default function CreateAccountScreen() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
                       />
                     </svg>
                   ) : (
@@ -505,9 +514,8 @@ export default function CreateAccountScreen() {
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-gray-50"
+                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 bg-gray-50"
                 disabled={isLoading}
-                required
               >
                 {availableRoles.map((role) => (
                   <option key={role} value={role}>
@@ -523,7 +531,7 @@ export default function CreateAccountScreen() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white font-semibold py-4 text-lg rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 mt-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
+              className="w-full text-white font-semibold py-4 text-lg rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 mt-4 disabled:opacity-50"
               style={{
                 background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
               }}

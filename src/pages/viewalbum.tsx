@@ -388,7 +388,7 @@ const AlbumPage = () => {
                   <div>
                     <p className="text-sm text-slate-900">
                       Track {tracks.length ? currentTrack + 1 : 0} of{" "}
-                      {tracks.length || album.track_count}
+                      { album.track_count}
                     </p>
                   </div>
                   <div className="flex gap-2">
