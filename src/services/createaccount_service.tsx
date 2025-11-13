@@ -1,20 +1,32 @@
 import axios from "axios";
 
-const API_URL = "https://uzi-muscal-backend.onrender.com/api/auth"; 
+const USERS_API_URL = "https://uzi-muscal-backend.onrender.com/api/users";
+const AUTH_API_URL = "https://uzi-muscal-backend.onrender.com/api/auth";
 
-// Register new user
+// Register new user (uses /api/users)
 const register = async (userData: any) => {
   try {
+    // Get token stored from login
+    const token = localStorage.getItem("token");
+
     const payload = {
       userName: userData.userName,
       email: userData.email,
       password: userData.password,
-      role: userData.role
+      role: userData.role,
+      
     };
 
-    const response = await axios.post(`${API_URL}/register`, payload, {
-      headers: { "Content-Type": "application/json" }
-    });
+    const headers: any = {
+      "Content-Type": "application/json",
+    };
+
+    // Include Authorization header if token exists
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.post(`${USERS_API_URL}`, payload, { headers });
 
     return response.data;
   } catch (error: any) {
@@ -23,12 +35,16 @@ const register = async (userData: any) => {
   }
 };
 
-// Verify email
+// Verify email (uses /api/auth)
 const verifyEmail = async (verificationData: { email: string; code: string }) => {
   try {
-    const response = await axios.post(`${API_URL}/verify-email`, verificationData, {
-      headers: { "Content-Type": "application/json" }
-    });
+    const response = await axios.post(
+      `${AUTH_API_URL}/verify-email`,
+      verificationData,
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
 
     return response.data;
   } catch (error: any) {
