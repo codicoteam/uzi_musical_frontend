@@ -16,6 +16,7 @@ export default function CreateAccountScreen() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
     feedback: [] as string[],
@@ -24,10 +25,12 @@ export default function CreateAccountScreen() {
   const availableRoles = ["fan", "artist"];
   const navigate = useNavigate();
 
+  // HANDLE INPUT CHANGE ---------------------------------------------------
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     setFormData({
       ...formData,
       [name]: value,
@@ -40,60 +43,72 @@ export default function CreateAccountScreen() {
     if (error) setError("");
   };
 
+  // PASSWORD STRENGTH CHECK ------------------------------------------------
   const checkPasswordStrength = (password: string) => {
     const feedback: string[] = [];
     let score = 0;
 
-    if (password.length >= 8) score += 1;
+    // Length
+    if (password.length >= 8) score++;
     else feedback.push("At least 8 characters");
 
-    if (/[a-z]/.test(password)) score += 1;
+    // Lowercase
+    if (/[a-z]/.test(password)) score++;
     else feedback.push("One lowercase letter");
 
-    if (/[A-Z]/.test(password)) score += 1;
+    // Uppercase
+    if (/[A-Z]/.test(password)) score++;
     else feedback.push("One uppercase letter");
 
-    if (/[0-9]/.test(password)) score += 1;
+    // Digit
+    if (/\d/.test(password)) score++;
     else feedback.push("One number");
 
-    if (/[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]/.test(password)) score += 1;
+    // Special char
+    if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) score++;
     else feedback.push("One special character");
 
+    // Score max is now 5
     setPasswordStrength({ score, feedback });
   };
 
+  // Color for strength bar -------------------------------------------------
   const getPasswordStrengthColor = () => {
-    if (passwordStrength.score === 0) return "bg-gray-200";
-    if (passwordStrength.score <= 2) return "bg-red-500";
-    if (passwordStrength.score <= 3) return "bg-yellow-500";
-    if (passwordStrength.score <= 4) return "bg-blue-500";
+    const s = passwordStrength.score;
+    if (s === 0) return "bg-gray-200";
+    if (s <= 2) return "bg-red-500";
+    if (s === 3) return "bg-yellow-500";
+    if (s === 4) return "bg-blue-500";
     return "bg-green-500";
   };
 
   const getPasswordStrengthText = () => {
-    if (passwordStrength.score === 0) return "Enter a password";
-    if (passwordStrength.score <= 2) return "Weak";
-    if (passwordStrength.score <= 3) return "Fair";
-    if (passwordStrength.score <= 4) return "Good";
+    const s = passwordStrength.score;
+    if (s === 0) return "Enter a password";
+    if (s <= 2) return "Weak";
+    if (s === 3) return "Fair";
+    if (s === 4) return "Good";
     return "Strong";
   };
 
-  const togglePasswordVisibility = () => {
+  // VISIBILITY TOGGLE -----------------------------------------------------
+  const togglePasswordVisibility = () =>
     setShowPassword((prev) => !prev);
-  };
 
-  const toggleConfirmPasswordVisibility = () => {
+  const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
-  };
 
+  // FORM VALIDATION -------------------------------------------------------
   const validateForm = () => {
-    const { userName, email, password, confirmPassword, role } = formData;
+    const { userName, email, password, confirmPassword, role } =
+      formData;
 
     if (!userName || !email || !password || !confirmPassword || !role) {
       setError("Please fill in all fields");
       return false;
     }
 
+    // Email regex
     const emailRegex =
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|edu|gov|io|co|us|uk|in|ca|de|fr|jp|au|nz|br|mx|es|it|ch|nl|se|no|dk|fi|pt|pl|tr|ru|cn|sg|za|ae)$/i;
 
@@ -102,6 +117,7 @@ export default function CreateAccountScreen() {
       return false;
     }
 
+    // Fake email domains
     const fakeEmailDomains = [
       "example.com",
       "test.com",
@@ -121,27 +137,28 @@ export default function CreateAccountScreen() {
       return false;
     }
 
+    // Password detailed checks (same as strength)
     if (password.length < 8) {
       setError("Password must be at least 8 characters long");
       return false;
     }
 
-    if (!/(?=.*[a-z])/.test(password)) {
+    if (!/[a-z]/.test(password)) {
       setError("Password must contain at least one lowercase letter");
       return false;
     }
 
-    if (!/(?=.*[A-Z])/.test(password)) {
+    if (!/[A-Z]/.test(password)) {
       setError("Password must contain at least one uppercase letter");
       return false;
     }
 
-    if (!/(?=.*\\d)/.test(password)) {
+    if (!/\d/.test(password)) {
       setError("Password must contain at least one number");
       return false;
     }
 
-    if (!/(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?])/.test(password)) {
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       setError("Password must contain at least one special character");
       return false;
     }
@@ -159,8 +176,10 @@ export default function CreateAccountScreen() {
     return true;
   };
 
+  // SUBMIT HANDLER --------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -168,6 +187,7 @@ export default function CreateAccountScreen() {
 
     try {
       const { confirmPassword, ...submitData } = formData;
+
       const response = await userService.register(submitData);
       console.log("Registration successful:", response);
 
@@ -178,10 +198,11 @@ export default function CreateAccountScreen() {
         confirmPassword: "",
         role: availableRoles[0] || "",
       });
+
       setPasswordStrength({ score: 0, feedback: [] });
       setIsLoading(false);
 
-      // ✅ Email verification prompt
+      // SWEETALERT OTP PROMPT
       const { value: code } = await Swal.fire({
         title: "Verify Your Email",
         html: `
@@ -193,7 +214,8 @@ export default function CreateAccountScreen() {
         showCancelButton: true,
         cancelButtonText: "Cancel",
         preConfirm: () => {
-          const otp = (document.getElementById("otp") as HTMLInputElement)?.value;
+          const otp = (document.getElementById("otp") as HTMLInputElement)
+            ?.value;
           if (!otp) {
             Swal.showValidationMessage("Please enter the verification code");
           }
@@ -203,8 +225,10 @@ export default function CreateAccountScreen() {
 
       if (code) {
         try {
-          // ✅ Call verifyEmail function here
-          const verifyResponse = await userService.verifyEmail(submitData.email, code);
+          const verifyResponse = await userService.verifyEmail(
+            submitData.email,
+            code
+          );
           console.log("Email verification successful:", verifyResponse);
 
           await Swal.fire({
@@ -233,8 +257,10 @@ export default function CreateAccountScreen() {
       setIsLoading(false);
 
       let errorMessage = "Registration failed. Please try again.";
+
       if (error.response?.status === 500) {
-        errorMessage = "Server error. Please try again later or contact support.";
+        errorMessage =
+          "Server error. Please try again later or contact support.";
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
@@ -252,6 +278,7 @@ export default function CreateAccountScreen() {
     }
   };
 
+  // RENDER ---------------------------------------------------------------
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -276,15 +303,11 @@ export default function CreateAccountScreen() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username */}
             <div>
-              <label
-                htmlFor="userName"
-                className="block text-base font-medium text-gray-700 mb-2"
-              >
+              <label className="block text-base font-medium text-gray-700 mb-2">
                 Username *
               </label>
               <input
                 type="text"
-                id="userName"
                 name="userName"
                 value={formData.userName}
                 onChange={handleChange}
@@ -296,15 +319,11 @@ export default function CreateAccountScreen() {
 
             {/* Email */}
             <div>
-              <label
-                htmlFor="email"
-                className="block text-base font-medium text-gray-700 mb-2"
-              >
+              <label className="block text-base font-medium text-gray-700 mb-2">
                 Email Address *
               </label>
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -316,68 +335,32 @@ export default function CreateAccountScreen() {
 
             {/* Password */}
             <div className="relative">
-              <label
-                htmlFor="password"
-                className="block text-base font-medium text-gray-700 mb-2"
-              >
+              <label className="block text-base font-medium text-gray-700 mb-2">
                 Password *
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-gray-50 pr-12"
+                  className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 bg-gray-50 pr-12"
                   placeholder="Create a strong password"
                   disabled={isLoading}
                 />
+
+                {/* Password Visibility Toggle */}
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   onClick={togglePasswordVisibility}
                   disabled={isLoading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showPassword ? (
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M3 3l3.59 3.59"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  )}
+                  {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
 
-              {/* Password Strength */}
+              {/* Password Strength Bar */}
               {formData.password && (
                 <div className="mt-3">
                   <div className="flex justify-between items-center mb-1">
@@ -388,6 +371,7 @@ export default function CreateAccountScreen() {
                       {passwordStrength.score}/5
                     </span>
                   </div>
+
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor()}`}
@@ -396,17 +380,13 @@ export default function CreateAccountScreen() {
                       }}
                     ></div>
                   </div>
+
                   {passwordStrength.feedback.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600 mb-1">
-                        Requirements:
-                      </p>
-                      <ul className="text-xs text-gray-500 list-disc list-inside space-y-1">
-                        {passwordStrength.feedback.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    <ul className="text-xs text-gray-600 mt-3 space-y-1 list-disc list-inside">
+                      {passwordStrength.feedback.map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               )}
@@ -414,72 +394,38 @@ export default function CreateAccountScreen() {
 
             {/* Confirm Password */}
             <div className="relative">
-              <label
-                htmlFor="confirmPassword"
-                className="block text-base font-medium text-gray-700 mb-2"
-              >
+              <label className="block text-base font-medium text-gray-700 mb-2">
                 Confirm Password *
               </label>
+
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
-                  id="confirmPassword"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-colors bg-gray-50 pr-12"
+                  className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg bg-gray-50 pr-12 focus:outline-none focus:border-red-500"
                   placeholder="Confirm your password"
                   disabled={isLoading}
                 />
+
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50"
                   onClick={toggleConfirmPasswordVisibility}
                   disabled={isLoading}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showConfirmPassword ? (
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M3 3l3.59 3.59"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  )}
+                  {showConfirmPassword ? "🙈" : "👁️"}
                 </button>
               </div>
+
               {formData.confirmPassword &&
                 formData.password !== formData.confirmPassword && (
                   <p className="text-red-600 text-sm mt-1">
                     Passwords do not match
                   </p>
                 )}
+
               {formData.confirmPassword &&
                 formData.password === formData.confirmPassword && (
                   <p className="text-green-600 text-sm mt-1">
@@ -490,19 +436,15 @@ export default function CreateAccountScreen() {
 
             {/* Role */}
             <div>
-              <label
-                htmlFor="role"
-                className="block text-base font-medium text-gray-700 mb-2"
-              >
+              <label className="block text-base font-medium text-gray-700 mb-2">
                 Role *
               </label>
               <select
-                id="role"
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 bg-gray-50"
                 disabled={isLoading}
+                className="w-full px-5 py-4 text-lg border-2 border-red-300 rounded-lg bg-gray-50 focus:outline-none focus:border-red-500"
               >
                 {availableRoles.map((role) => (
                   <option key={role} value={role}>
@@ -510,49 +452,19 @@ export default function CreateAccountScreen() {
                   </option>
                 ))}
               </select>
-              <p className="text-sm text-gray-500 mt-2">
-                Choose your role on the platform
-              </p>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white font-semibold py-4 text-lg rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 mt-4 disabled:opacity-50"
+              className="w-full py-4 text-lg font-semibold text-white rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
               style={{
-                background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+                background:
+                  "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
               }}
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 
-5.291A7.962 7.962 0 014 12H0c0 3.042 
-1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating Account...
-                </div>
-              ) : (
-                "Create Account"
-              )}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
