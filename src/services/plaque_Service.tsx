@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://uzi-muscal-backend.onrender.com/api/plaques";
+const API_URL = "http://13.61.185.238:5000/api/plaques";
 
 // Get authentication token from localStorage
 const getAuthHeader = () => {

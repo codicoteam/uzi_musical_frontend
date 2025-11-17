@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const AUTH_API_URL = "https://uzi-muscal-backend.onrender.com/api/auth";
-const USER_API_URL = "https://uzi-muscal-backend.onrender.com/api/users";
+const AUTH_API_URL = "http://13.61.185.238:5000/api/auth";
+const USER_API_URL = "http://13.61.185.238:5000/api/users";
 
 // ✅ Register (No Token)
 const register = async (userData: {
