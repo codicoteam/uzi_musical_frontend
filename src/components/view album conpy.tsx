@@ -865,6 +865,8 @@ const AlbumPage = () => {
         albumImage={matchedPlaque?.plaque_image_url || album.cover_art}
         supportAmount={selectedAmount}
         isDarkMode={isDarkMode}
+        albumId={album._id} // ACTUAL ALBUM ID PASSED HERE
+        plaqueType={matchedPlaque?.plaque_type} // Pass the actual plaque type
       />
     </div>
   );
