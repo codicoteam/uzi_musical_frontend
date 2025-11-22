@@ -9,8 +9,8 @@ interface PaymentModalProps {
   albumArtist: string;
   albumImage: string;
   supportAmount: number;
-  albumId?: string; // Add albumId to props
-  plaqueType?: string; // Add plaqueType to props
+  albumId?: string; // Album ID from AlbumPage
+  plaqueType?: string; // Plaque type from AlbumPage
   isDarkMode?: boolean;
 }
 
@@ -74,8 +74,8 @@ const PaymentModal = ({
   albumArtist,
   albumImage,
   supportAmount,
-  albumId, // Receive albumId from props
-  plaqueType = "Gold", // Default plaque type
+  albumId, // ✅ will be passed from AlbumPage now
+  plaqueType = "Gold", // default plaque type
 }: PaymentModalProps) => {
   const [includeShipping, setIncludeShipping] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -95,9 +95,7 @@ const PaymentModal = ({
 
   // Calculate total amount
   const shippingCost = 10.0;
-  const totalAmount = includeShipping
-    ? supportAmount + shippingCost
-    : supportAmount;
+  const totalAmount = includeShipping ? supportAmount + shippingCost : supportAmount;
 
   // Fetch currencies when modal opens
   useEffect(() => {
@@ -105,7 +103,7 @@ const PaymentModal = ({
       fetchCurrencies();
     }
   }, [isOpen]);
-   
+
   // Fetch payment methods when currency changes
   useEffect(() => {
     if (isOpen && selectedCurrency) {
@@ -116,29 +114,36 @@ const PaymentModal = ({
   const fetchCurrencies = async () => {
     setIsInitializing(true);
     setError(null);
-    
+
     try {
       console.log("Fetching currencies from PesePay...");
-      const currenciesResponse = await fetch("https://api.pesepay.com/api/payments-engine/v1/currencies/active", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      const currenciesResponse = await fetch(
+        "https://api.pesepay.com/api/payments-engine/v1/currencies/active",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
-      
+      );
+
       if (!currenciesResponse.ok) {
         throw new Error(`Failed to fetch currencies: ${currenciesResponse.status}`);
       }
-      
+
       const currenciesData = await currenciesResponse.json();
       console.log("Currencies response:", currenciesData);
       setCurrencies(currenciesData);
 
       // Set default currency
       if (currenciesData && currenciesData.length > 0) {
-        const usdCurrency = currenciesData.find((curr: Currency) => curr.code === "USD");
-        const defaultCurrency = currenciesData.find((curr: Currency) => curr.defaultCurrency);
-        
+        const usdCurrency = currenciesData.find(
+          (curr: Currency) => curr.code === "USD"
+        );
+        const defaultCurrency = currenciesData.find(
+          (curr: Currency) => curr.defaultCurrency
+        );
+
         if (usdCurrency) {
           setSelectedCurrency("USD");
         } else if (defaultCurrency) {
@@ -147,7 +152,6 @@ const PaymentModal = ({
           setSelectedCurrency(currenciesData[0].code);
         }
       }
-
     } catch (err: any) {
       console.error("Error fetching currencies:", err);
       setError(err.message || "Failed to load currencies. Please try again.");
@@ -159,20 +163,25 @@ const PaymentModal = ({
   const fetchPaymentMethodsForCurrency = async (currencyCode: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       console.log(`Fetching payment methods for currency: ${currencyCode}...`);
-      const paymentMethodsResponse = await fetch(`https://api.pesepay.com/api/payments-engine/v1/payment-methods/for-currency?currencyCode=${currencyCode}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      const paymentMethodsResponse = await fetch(
+        `https://api.pesepay.com/api/payments-engine/v1/payment-methods/for-currency?currencyCode=${currencyCode}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
-      
+      );
+
       if (!paymentMethodsResponse.ok) {
-        throw new Error(`Failed to fetch payment methods: ${paymentMethodsResponse.status}`);
+        throw new Error(
+          `Failed to fetch payment methods: ${paymentMethodsResponse.status}`
+        );
       }
-      
+
       const paymentMethodsData = await paymentMethodsResponse.json();
       console.log(`Payment methods for ${currencyCode}:`, paymentMethodsData);
       setAllPaymentMethods(paymentMethodsData);
@@ -184,18 +193,20 @@ const PaymentModal = ({
           value: method.id.toString(),
           label: method.name,
           options: [method.name],
-          methodData: method
+          methodData: method,
         }));
 
       console.log("Formatted payment methods:", formattedMethods);
       setPaymentMethods(formattedMethods);
-      
+
       // Reset selected payment if no longer available
-      if (selectedPayment && !formattedMethods.some(method => method.value === selectedPayment)) {
+      if (
+        selectedPayment &&
+        !formattedMethods.some((method) => method.value === selectedPayment)
+      ) {
         setSelectedPayment("");
         setSelectedPaymentOption("");
       }
-
     } catch (err: any) {
       console.error("Error fetching payment methods:", err);
       setError(err.message || "Failed to load payment methods. Please try again.");
@@ -204,6 +215,74 @@ const PaymentModal = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateMockAlbumId = (): string => {
+    return `mock-album-${Date.now()}`;
+  };
+
+  const startStatusPolling = async (referenceNumber: string) => {
+    try {
+      // Poll for status updates
+      const statusResponse = await PaymentsService.getStatus(referenceNumber);
+      console.log("Payment status:", statusResponse);
+
+      if (
+        statusResponse.status === "completed" ||
+        statusResponse.status === "success"
+      ) {
+        alert(`Payment completed successfully for ${albumName}!`);
+        onClose();
+      } else if (statusResponse.status === "failed") {
+        setError("Payment failed. Please try again.");
+      } else if (statusResponse.status === "pending") {
+        console.log("Payment is still pending...");
+      }
+    } catch (err) {
+      console.error("Error checking payment status:", err);
+    }
+  };
+
+  const generateInvoiceNumber = (): string => {
+    return `INV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  };
+
+  const handleWhatsApp = (message: string) => {
+    const phone = "+263714219938";
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
+  };
+
+  const handleCashPickup = () => {
+    const message = `Hi, I'd like to arrange cash pickup for my order:
+Album: ${albumName}
+Artist: ${albumArtist}
+Amount: ${selectedCurrency} ${totalAmount.toFixed(2)}
+Invoice: ${generateInvoiceNumber()}
+${
+  includeShipping
+    ? `Shipping Address: ${shippingAddress}`
+    : "No shipping required"
+}`;
+
+    handleWhatsApp(message);
+  };
+
+  const handleOtherPaymentMethod = () => {
+    const message = `Hi, I don't see my preferred payment method for:
+Album: ${albumName}
+Artist: ${albumArtist}
+Amount: ${selectedCurrency} ${totalAmount.toFixed(2)}
+Invoice: ${generateInvoiceNumber()}
+Can you help me with alternative payment options?`;
+
+    handleWhatsApp(message);
+  };
+
+  // Helper: check if method should be seamless (Ecocash only)
+  const isSeamlessMethod = (method: ApiPaymentMethod) => {
+    const name = method.name.toLowerCase();
+    return name === "ecocash zig".toLowerCase() || name === "ecocash usd".toLowerCase();
   };
 
   const handleProceedToPayment = async () => {
@@ -234,55 +313,36 @@ const PaymentModal = ({
     setError(null);
 
     try {
-      const selectedMethod = allPaymentMethods.find(method => method.id.toString() === selectedPayment);
-      
+      const selectedMethod = allPaymentMethods.find(
+        (method) => method.id.toString() === selectedPayment
+      );
+
       if (!selectedMethod) {
         throw new Error("Selected payment method not found");
       }
 
-      // Use provided albumId or generate a fallback
+      // ✅ Use the albumId passed from AlbumPage, or fall back
       const finalAlbumId = albumId || generateMockAlbumId();
 
       // Build required fields object
       const requiredFields: Record<string, string> = {};
-      
+
       // Add phone number to required fields if the payment method requires it
-      if (selectedMethod.requiredFields.some(field => field.name === 'customerPhoneNumber')) {
+      if (
+        selectedMethod.requiredFields.some(
+          (field) => field.name === "customerPhoneNumber"
+        )
+      ) {
         requiredFields.customerPhoneNumber = phoneNumber;
       }
 
-      // Check if this payment method requires redirect
-      if (selectedMethod.redirectRequired) {
-        // Redirect payment payload
-        const redirectPayload = {
-          albumId: finalAlbumId,
-          plaqueType: plaqueType,
-          amount: totalAmount, // Fixed: using the actual totalAmount
-          phone: phoneNumber,
-          currencyCode: selectedCurrency,
-          albumDetails: {
-            name: albumName,
-            artist: albumArtist,
-            image: albumImage
-          }
-        };
-
-        console.log("Creating redirect payment with payload:", redirectPayload);
-        const response = await PaymentsService.createPurchaseRedirect(redirectPayload);
-        console.log("Redirect payment response:", response);
-        
-        if (response.redirectUrl) {
-          // Redirect to payment gateway
-          window.location.href = response.redirectUrl;
-        } else {
-          throw new Error("No redirect URL received from payment service");
-        }
-      } else {
-        // Seamless payment payload
+      // Decide between seamless (Ecocash Zig / Ecocash USD) and redirect
+      if (isSeamlessMethod(selectedMethod)) {
+        // ✅ Seamless payment (Ecocash)
         const seamlessPayload = {
           albumId: finalAlbumId,
           plaqueType: plaqueType,
-          amount: totalAmount, // Fixed: using the actual totalAmount
+          amount: totalAmount,
           phone: phoneNumber,
           paymentMethodCode: selectedMethod.code,
           currencyCode: selectedCurrency,
@@ -290,119 +350,107 @@ const PaymentModal = ({
           albumDetails: {
             name: albumName,
             artist: albumArtist,
-            image: albumImage
+            image: albumImage,
           },
-          shippingDetails: includeShipping ? {
-            includeShipping: true,
-            address: shippingAddress,
-            instructions: deliveryInstructions,
-            contactNumber: callingNumber || phoneNumber
-          } : {
-            includeShipping: false
-          }
+          shippingDetails: includeShipping
+            ? {
+                includeShipping: true,
+                address: shippingAddress,
+                instructions: deliveryInstructions,
+                contactNumber: callingNumber || phoneNumber,
+              }
+            : {
+                includeShipping: false,
+              },
         };
 
         console.log("Creating seamless payment with payload:", seamlessPayload);
-        const response = await PaymentsService.createPurchaseSeamless(seamlessPayload);
+        const response: any = await PaymentsService.createPurchaseSeamless(
+          seamlessPayload
+        );
         console.log("Seamless payment response:", response);
-        
-        // Handle successful payment initiation based on response
-        if (response.paymentInstructions) {
-          // Show payment instructions to user
-          handleWhatsApp(
-            `Payment instructions for ${albumName}: ${response.paymentInstructions}\nAmount: ${selectedCurrency} ${totalAmount}\nPayment Method: ${selectedMethod.name}\nAlbum: ${albumName} by ${albumArtist}`
-          );
-        } else if (response.referenceNumber) {
-          // Start polling for status
+
+        // ✅ Always show the PIN message on successful initiation
+        if (response && (response.success === true || response.status === "success")) {
+          alert("Payment initiated, enter PIN to make the payment.");
+          if (response.referenceNumber) {
+            startStatusPolling(response.referenceNumber);
+          }
+        } else if (response && response.referenceNumber) {
+          alert("Payment initiated, enter PIN to make the payment.");
           startStatusPolling(response.referenceNumber);
-        } else if (response.status === "success" || response.success) {
-          // Generic success handling
-          console.log("Payment initiated successfully:", response);
-          alert("Payment initiated successfully! Please check your payment method for confirmation.");
-          onClose(); // Close modal on success
         } else {
-          // Generic success handling
-          console.log("Payment initiated successfully:", response);
-          alert("Payment initiated successfully! Please check your payment method for confirmation.");
+          alert(
+            "Payment initiation response received. If you see a prompt on your phone, enter your PIN to complete the payment."
+          );
+        }
+      } else {
+        // ✅ Redirect payment (all other methods)
+        const redirectPayload = {
+          albumId: finalAlbumId,
+          plaqueType: plaqueType,
+          amount: totalAmount,
+          phone: phoneNumber,
+          currencyCode: selectedCurrency,
+          paymentMethodCode: selectedMethod.code,
+          albumDetails: {
+            name: albumName,
+            artist: albumArtist,
+            image: albumImage,
+          },
+          shippingDetails: includeShipping
+            ? {
+                includeShipping: true,
+                address: shippingAddress,
+                instructions: deliveryInstructions,
+                contactNumber: callingNumber || phoneNumber,
+              }
+            : {
+                includeShipping: false,
+              },
+        };
+
+        console.log("Creating redirect payment with payload:", redirectPayload);
+        const response: any = await PaymentsService.createPurchase(redirectPayload);
+        console.log("Redirect payment response:", response);
+
+        // Expected response:
+        // {
+        //   "success": true,
+        //   "referenceNumber": "20251122123505148-564ACB01",
+        //   "pollUrl": "https://api.pesepay.com/api/payments-engine/v1/payments/check-payment?referenceNumber=20251122123505148-564ACB01",
+        //   "redirectUrl": "https://pay.pesepay.com/#/pesepay-payments?referenceNumber=20251122123505148-564ACB01",
+        //   "paid": false
+        // }
+
+        if (response && response.redirectUrl) {
+          // ✅ Open redirect URL in a NEW TAB
+          window.open(response.redirectUrl, "_blank");
+        } else {
+          throw new Error("No redirect URL received from payment service");
         }
       }
     } catch (err: any) {
       console.error("Payment error:", err);
-      const errorMessage = err.response?.data?.message || err.message || "Failed to initiate payment. Please try again or contact support.";
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to initiate payment. Please try again or contact support.";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Helper function to generate mock album ID if not provided
-  const generateMockAlbumId = (): string => {
-    return `mock-album-${Date.now()}`;
-  };
-  
-  const startStatusPolling = async (referenceNumber: string) => {
-    try {
-      // Poll for status updates
-      const statusResponse = await PaymentsService.getStatus(referenceNumber);
-      console.log("Payment status:", statusResponse);
-      
-      if (statusResponse.status === "completed" || statusResponse.status === "success") {
-        alert(`Payment completed successfully for ${albumName}!`);
-        onClose();
-      } else if (statusResponse.status === "failed") {
-        setError("Payment failed. Please try again.");
-      } else if (statusResponse.status === "pending") {
-        // Continue polling or show pending message
-        console.log("Payment is still pending...");
-      }
-    } catch (err) {
-      console.error("Error checking payment status:", err);
-    }
-  };
-
-  const generateInvoiceNumber = (): string => {
-    return `INV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-  };
-
-  const handleWhatsApp = (message: string) => {
-    const phone = "+263714219938";
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, "_blank");
-  };
-
-  const handleCashPickup = () => {
-    const message = `Hi, I'd like to arrange cash pickup for my order:
-Album: ${albumName}
-Artist: ${albumArtist}
-Amount: ${selectedCurrency} ${totalAmount.toFixed(2)}
-Invoice: ${generateInvoiceNumber()}
-${includeShipping ? `Shipping Address: ${shippingAddress}` : 'No shipping required'}`;
-    
-    handleWhatsApp(message);
-  };
-
-  const handleOtherPaymentMethod = () => {
-    const message = `Hi, I don't see my preferred payment method for:
-Album: ${albumName}
-Artist: ${albumArtist}
-Amount: ${selectedCurrency} ${totalAmount.toFixed(2)}
-Invoice: ${generateInvoiceNumber()}
-Can you help me with alternative payment options?`;
-    
-    handleWhatsApp(message);
-  };
-
   if (!isOpen) return null;
 
   const invoiceNumber = generateInvoiceNumber();
 
-  const selectedMethod = paymentMethods.find(
-    (m) => m.value === selectedPayment
-  );
+  const selectedMethod = paymentMethods.find((m) => m.value === selectedPayment);
 
   // Check if selected method requires phone number
   const requiresPhoneNumber = selectedMethod?.methodData?.requiredFields?.some(
-    field => field.name === 'customerPhoneNumber' && !field.optional
+    (field) => field.name === "customerPhoneNumber" && !field.optional
   );
 
   return (
@@ -443,7 +491,11 @@ Can you help me with alternative payment options?`;
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
                 <p className="text-red-700 text-sm">{error}</p>
                 <button
-                  onClick={() => selectedCurrency ? fetchPaymentMethodsForCurrency(selectedCurrency) : fetchCurrencies()}
+                  onClick={() =>
+                    selectedCurrency
+                      ? fetchPaymentMethodsForCurrency(selectedCurrency)
+                      : fetchCurrencies()
+                  }
                   className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
                 >
                   Retry
@@ -459,11 +511,17 @@ Can you help me with alternative payment options?`;
             )}
 
             {/* No Payment Methods Available */}
-            {!isInitializing && paymentMethods.length === 0 && !error && selectedCurrency && (
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <p className="text-yellow-700 text-sm">No payment methods available for {selectedCurrency} at the moment. Please try another currency or contact support.</p>
-              </div>
-            )}
+            {!isInitializing &&
+              paymentMethods.length === 0 &&
+              !error &&
+              selectedCurrency && (
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                  <p className="text-yellow-700 text-sm">
+                    No payment methods available for {selectedCurrency} at the moment.
+                    Please try another currency or contact support.
+                  </p>
+                </div>
+              )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {/* Left Column - Album & Invoice */}
@@ -516,7 +574,7 @@ Can you help me with alternative payment options?`;
                               : "bg-white text-gray-700 border border-gray-200 hover:border-green-500"
                           } disabled:opacity-50`}
                         >
-                          {currency.code} 
+                          {currency.code}
                           {currency.defaultCurrency && " ★"}
                         </button>
                       ))}
@@ -524,7 +582,9 @@ Can you help me with alternative payment options?`;
                     {selectedCurrency && (
                       <p className="text-xs text-gray-500 mt-3">
                         Selected: {selectedCurrency}
-                        {currencies.find(c => c.code === selectedCurrency)?.defaultCurrency && " (Default Currency)"}
+                        {currencies.find(
+                          (c) => c.code === selectedCurrency
+                        )?.defaultCurrency && " (Default Currency)"}
                       </p>
                     )}
                   </div>
@@ -536,7 +596,9 @@ Can you help me with alternative payment options?`;
                     <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4">
                       Select Currency
                     </h3>
-                    <p className="text-yellow-700 text-sm">No currencies available at the moment.</p>
+                    <p className="text-yellow-700 text-sm">
+                      No currencies available at the moment.
+                    </p>
                   </div>
                 )}
 
@@ -559,7 +621,8 @@ Can you help me with alternative payment options?`;
                     </p>
                   )}
                   <p className="text-xs text-gray-500 mt-2">
-                    We'll use this number for payment confirmation and shipping updates
+                    We'll use this number for payment confirmation and shipping
+                    updates
                   </p>
                 </div>
 
@@ -634,9 +697,7 @@ Can you help me with alternative payment options?`;
                         type="text"
                         placeholder="Delivery instructions (optional)"
                         value={deliveryInstructions}
-                        onChange={(e) =>
-                          setDeliveryInstructions(e.target.value)
-                        }
+                        onChange={(e) => setDeliveryInstructions(e.target.value)}
                         disabled={isLoading}
                         className="w-full px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm disabled:opacity-50"
                       />
@@ -706,7 +767,9 @@ Can you help me with alternative payment options?`;
                           >
                             {method.label}
                             {method.methodData?.redirectRequired && (
-                              <span className="text-xs text-blue-600 ml-2">(Redirect)</span>
+                              <span className="text-xs text-blue-600 ml-2">
+                                (Redirect)
+                              </span>
                             )}
                           </button>
                         ))}
@@ -744,9 +807,8 @@ Can you help me with alternative payment options?`;
                     <div className="mt-4 bg-blue-50 p-4 rounded-xl">
                       <p className="text-xs text-blue-700">
                         <strong>Selected:</strong> {selectedMethod?.label}
-                        {selectedMethod?.methodData?.description && 
-                          ` - ${selectedMethod.methodData.description}`
-                        }
+                        {selectedMethod?.methodData?.description &&
+                          ` - ${selectedMethod.methodData.description}`}
                         {selectedMethod?.methodData?.redirectRequired && (
                           <span className="block mt-1 text-blue-600 font-medium">
                             This method will redirect you to complete payment
@@ -766,7 +828,13 @@ Can you help me with alternative payment options?`;
                 <div className="space-y-3">
                   <button
                     onClick={handleProceedToPayment}
-                    disabled={!selectedPayment || !selectedPaymentOption || isLoading || paymentMethods.length === 0 || !phoneNumber}
+                    disabled={
+                      !selectedPayment ||
+                      !selectedPaymentOption ||
+                      isLoading ||
+                      paymentMethods.length === 0 ||
+                      !phoneNumber
+                    }
                     className="w-full py-3.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base disabled:transform-none"
                   >
                     {isLoading ? "Processing..." : "Proceed to Payment"}
@@ -791,11 +859,7 @@ Can you help me with alternative payment options?`;
 
                 {/* PesePay Badge */}
                 <div className="flex items-center justify-center gap-2 text-xs text-gray-500 pt-2">
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" />
                   </svg>
                   <span>Secured by PesePay</span>

@@ -236,6 +236,7 @@ const AlbumPage = () => {
 
     return { type: "Custom Support", image: album?.cover_art };
   }, [selectedAmount, album?.cover_art]);
+
   const sliderMin = 1;
   const sliderMax = 1000;
 
@@ -388,7 +389,7 @@ const AlbumPage = () => {
                   <div>
                     <p className="text-sm text-slate-900">
                       Track {tracks.length ? currentTrack + 1 : 0} of{" "}
-                      { album.track_count}
+                      {album.track_count}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -594,7 +595,6 @@ const AlbumPage = () => {
               </div>
 
               {/* Album Description */}
-
               {album.description && (
                 <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
                   <h3 className="text-lg font-bold text-slate-900 mb-3">
@@ -817,6 +817,8 @@ const AlbumPage = () => {
         albumArtist={getArtistName()}
         albumImage={matchedPlaque?.plaque_image_url || album.cover_art}
         supportAmount={selectedAmount}
+        albumId={album._id}                 
+        plaqueType={getDisplayPlaque.type}   
         isDarkMode={isDarkMode}
       />
     </div>
