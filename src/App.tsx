@@ -11,10 +11,8 @@ import MusicActivitiesScreen from "./pages/Activities";
 import AlbumDetailScreen from "./pages/Albumdetail";
 import AlbumPage from "./pages/viewalbum";
 import AllAlbumsScreen from "./pages/All_Albums";
-
 import Plaques from "./pages/Plaques";
 import ProfileScreen from "./pages/Profil";
-
 import Errorpage from "./pages/error";
 import VerifyEmailScreen from "./pages/verify_email";
 

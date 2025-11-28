@@ -36,9 +36,28 @@ const getAlbumById = async (albumId: string, token: string) => {
   }
 };
 
+// ✅ Get New/Featured Albums
+const getNewAlbums = async (limit: number = 5) => {
+  try {
+    const response = await axios.get(`${API_URL}/newest?limit=${limit}`, {
+      headers: {
+        Accept: "*/*",
+      },
+    });
+    console.log("🌟 New/Featured Albums Response:", response.data); // Console log for new albums
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching new albums:", error.response?.data || error.message);
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch new albums. Please try again later."
+    );
+  }
+};
+
 const albumService = {
   getAllAlbums,
   getAlbumById,
+  getNewAlbums,
 };
 
 export default albumService;

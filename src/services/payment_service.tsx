@@ -39,7 +39,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-
 // 🔥 RESPONSE INTERCEPTOR FOR IMPROVED ERRORS
 api.interceptors.response.use(
   (response) => {
@@ -51,7 +50,10 @@ api.interceptors.response.use(
 
     if (error.response) {
       console.error("📩 Error Response:", error.response.data);
-      throw new Error(error.response.data?.message || `Server error: ${error.response.status}`);
+      throw new Error(
+        error.response.data?.message ||
+        `Server error: ${error.response.status}`
+      );
     } else if (error.request) {
       throw new Error("Network error: Unable to connect to payment service");
     } else {
@@ -77,27 +79,52 @@ const handleRequest = async (callback: Function, label: string) => {
 const PaymentsService = {
   /** Create a purchase (standard flow) */
   createPurchase: async (payload: any) =>
-    handleRequest(() => api.post("/purchase", payload).then(res => res.data), "createPurchase"),
+    handleRequest(
+      () => api.post("/purchase", payload).then((res) => res.data),
+      "createPurchase"
+    ),
 
   /** Create a purchase (seamless flow) */
   createPurchaseSeamless: async (payload: any) =>
-    handleRequest(() => api.post("/purchase-seamless", payload).then(res => res.data), "createPurchaseSeamless"),
+    handleRequest(
+      () => api.post("/purchase-seamless", payload).then((res) => res.data),
+      "createPurchaseSeamless"
+    ),
 
   /** Create a purchase (redirect flow) */
   createPurchaseRedirect: async (payload: any) =>
-    handleRequest(() => api.post("/purchase-redirect", payload).then(res => res.data), "createPurchaseRedirect"),
+    handleRequest(
+      () => api.post("/purchase-redirect", payload).then((res) => res.data),
+      "createPurchaseRedirect"
+    ),
 
   /** Get payment status by reference number */
   getStatus: async (referenceNumber: string) =>
-    handleRequest(() => api.get(`/status/${referenceNumber}`).then(res => res.data), "getStatus"),
+    handleRequest(
+      () => api.get(`/status/${referenceNumber}`).then((res) => res.data),
+      "getStatus"
+    ),
 
   /** Poll payment status */
   pollStatus: async () =>
-    handleRequest(() => api.get("/poll-status").then(res => res.data), "pollStatus"),
+    handleRequest(
+      () => api.get("/poll-status").then((res) => res.data),
+      "pollStatus"
+    ),
 
   /** Handle Pesepay callback */
   pesepayCallback: async (payload: any) =>
-    handleRequest(() => api.post("/pesepay/callback", payload).then(res => res.data), "pesepayCallback"),
+    handleRequest(
+      () => api.post("/pesepay/callback", payload).then((res) => res.data),
+      "pesepayCallback"
+    ),
+
+  /** 🔥 Get all purchases (albums / plaques) for the authenticated user */
+  getPurchases: async () =>
+    handleRequest(
+      () => api.get("/purchases").then((res) => res.data),
+      "getPurchases"
+    ),
 };
 
 export default PaymentsService;

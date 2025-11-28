@@ -8,6 +8,7 @@ import {
   Search,
   X,
   Eye,
+  Star,
 } from "lucide-react";
 import Sidebar from "../components/sidebar";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -27,7 +28,9 @@ const HomeScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [newAlbums, setNewAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newAlbumsLoading, setNewAlbumsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // User state
@@ -217,7 +220,7 @@ const HomeScreen = () => {
           }
         }
       };
-      
+
       checkProfile();
     }
   }, [location.pathname, hasSkippedProfile, profileLoading]);
@@ -317,7 +320,37 @@ const HomeScreen = () => {
     };
   };
 
-  // Fetch albums from API
+  // Fetch new/featured albums from API
+  useEffect(() => {
+    const fetchNewAlbums = async () => {
+      try {
+        setNewAlbumsLoading(true);
+        const response = await albumService.getNewAlbums(5);
+
+        // Handle different possible response structures
+        let newAlbumsData: Album[] = [];
+
+        if (Array.isArray(response)) {
+          newAlbumsData = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          newAlbumsData = response.data;
+        } else if (response.albums && Array.isArray(response.albums)) {
+          newAlbumsData = response.albums;
+        }
+
+        setNewAlbums(newAlbumsData);
+      } catch (err) {
+        console.error("Error fetching new albums:", err);
+        setNewAlbums([]);
+      } finally {
+        setNewAlbumsLoading(false);
+      }
+    };
+
+    fetchNewAlbums();
+  }, []);
+
+  // Fetch all albums from API
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
@@ -483,7 +516,8 @@ const HomeScreen = () => {
   // Preload images on component mount
   useEffect(() => {
     preloadImages(albums);
-  }, [preloadImages]);
+    preloadImages(newAlbums);
+  }, [preloadImages, albums, newAlbums]);
 
   // Display albums based on search state
   const displayAlbums = isSearching ? filteredAlbums : albums;
@@ -492,7 +526,7 @@ const HomeScreen = () => {
     <div
       className={`flex h-screen ${themeClasses.bg} relative transition-colors duration-300`}
     >
-      
+
 
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
@@ -671,6 +705,87 @@ const HomeScreen = () => {
             </div>
           )}
 
+          {/* New/Featured Albums Section */}
+          {!isSearching && newAlbums.length > 0 && (
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  <h2 className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
+                    New & Featured
+                  </h2>
+                </div>
+                <p className={`text-sm ${themeClasses.textSecondary}`}>
+                  {newAlbums.length} new releases
+                </p>
+              </div>
+
+              {/* New Albums Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                {newAlbums.map((album, index) => (
+                  <div
+                    key={album._id || `new-${index}`}
+                    className={`group relative overflow-hidden rounded-lg ${themeClasses.card} backdrop-blur-sm hover:bg-opacity-80 transition-all duration-200 cursor-pointer p-3`}
+                    onClick={() => openAlbumPage(album)}
+                  >
+                    {/* Album Image */}
+                    <div className="relative aspect-square overflow-hidden rounded-lg mb-3">
+                      <img
+                        src={album.cover_art}
+                        alt={album.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.src = cover;
+                        }}
+                      />
+
+                      {/* New Badge */}
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                        NEW
+                      </div>
+
+                      {/* Featured Badge */}
+                      {album.is_featured && (
+                        <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                          FEATURED
+                        </div>
+                      )}
+
+                      {/* Play Button Overlay */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                        <div className="p-3 rounded-full bg-white shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-200">
+                          <Eye className="w-5 h-5 text-black" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Album Info */}
+                    <div>
+                      <h3
+                        className={`text-sm font-semibold ${themeClasses.text} mb-1 line-clamp-1`}
+                      >
+                        {album.title}
+                      </h3>
+                      <p
+                        className={`text-xs ${themeClasses.textSecondary} line-clamp-1`}
+                      >
+                        {typeof album.artist === "string"
+                          ? album.artist
+                          : album.artist?.name}
+                      </p>
+                      <p
+                        className={`text-xs ${themeClasses.textSecondary} mt-1`}
+                      >
+                        {album.track_count} tracks
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Stats Cards */}
           {!isSearching && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -730,14 +845,14 @@ const HomeScreen = () => {
             </div>
           )}
 
-          {/* Albums Section */}
+          {/* All Albums Section */}
           <div>
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2
                   className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}
                 >
-                  {isSearching ? "Search Results" : "Albums"}
+                  {isSearching ? "Search Results" : "All Albums"}
                 </h2>
                 <p className={`text-sm ${themeClasses.textSecondary} mt-1`}>
                   {isSearching
