@@ -10,24 +10,28 @@ export default function VerifyEmailScreen() {
   const [isResending, setIsResending] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [success, setSuccess] = useState(false);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Get email from navigation state or localStorage
-  const email = location.state?.email || 
+
+  // Email from state or storage fallback
+  const email =
+    location.state?.email ||
     (() => {
       try {
         const stored = localStorage.getItem("userRegister");
-        return stored ? JSON.parse(stored).user?.email || JSON.parse(stored).email : "";
+        return stored
+          ? JSON.parse(stored).user?.email ||
+          JSON.parse(stored).email
+          : "";
       } catch {
         return "";
       }
     })();
-  
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Start resend timer on mount
+  const inputRefs = useRef([]);
+
+  // Start timer on mount
   useEffect(() => {
     setResendTimer(60);
   }, []);
@@ -40,8 +44,8 @@ export default function VerifyEmailScreen() {
     }
   }, [resendTimer]);
 
-  const handleChange = (index: number, value: string) => {
-    // Only allow numbers
+  // Handle number input
+  const handleChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return;
 
     const newOtp = [...otp];
@@ -50,19 +54,17 @@ export default function VerifyEmailScreen() {
 
     if (error) setError("");
 
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
+    // Auto-focus next
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
 
-    // Auto-submit when all fields are filled
-    if (index === 5 && value && newOtp.every(digit => digit !== "")) {
+    // Auto-verify
+    if (index === 5 && value && newOtp.every((d) => d !== "")) {
       setTimeout(() => handleVerify(newOtp.join("")), 100);
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    // Handle backspace
+  // Backspace navigation
+  const handleKeyDown = (index, e) => {
     if (e.key === "Backspace") {
       if (!otp[index] && index > 0) {
         const newOtp = [...otp];
@@ -70,41 +72,40 @@ export default function VerifyEmailScreen() {
         setOtp(newOtp);
         inputRefs.current[index - 1]?.focus();
       }
-    }
-    // Handle arrow keys
-    else if (e.key === "ArrowLeft" && index > 0) {
+    } else if (e.key === "ArrowLeft" && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    }
-    else if (e.key === "ArrowRight" && index < 5) {
+    } else if (e.key === "ArrowRight" && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  // Pasting OTP
+  const handlePaste = (e) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").slice(0, 6);
-    
-    if (!/^\d+$/.test(pastedData)) return;
+    const pasted = e.clipboardData.getData("text").slice(0, 6);
 
+    if (!/^\d+$/.test(pasted)) return;
+
+    const digits = pasted.split("");
     const newOtp = [...otp];
-    pastedData.split("").forEach((char, index) => {
-      if (index < 6) newOtp[index] = char;
+
+    digits.forEach((char, i) => {
+      if (i < 6) newOtp[i] = char;
     });
-    
+
     setOtp(newOtp);
-    
-    // Focus last filled input or submit if complete
-    const lastFilledIndex = pastedData.length - 1;
-    if (lastFilledIndex < 5) {
-      inputRefs.current[lastFilledIndex + 1]?.focus();
-    } else if (pastedData.length === 6) {
-      setTimeout(() => handleVerify(pastedData), 100);
+
+    if (digits.length === 6) {
+      setTimeout(() => handleVerify(pasted), 100);
+    } else {
+      inputRefs.current[digits.length]?.focus();
     }
   };
 
-  const handleVerify = async (otpCode: string | null = null) => {
+  // Verification handler
+  const handleVerify = async (otpCode = null) => {
     const otpString = otpCode || otp.join("");
-    
+
     if (otpString.length !== 6) {
       setError("Please enter all 6 digits");
       return;
@@ -128,34 +129,28 @@ export default function VerifyEmailScreen() {
         title: "Verified!",
         text: "Your email has been successfully verified!",
         icon: "success",
-        confirmButtonColor: "#dc2626",
         timer: 2000,
         showConfirmButton: false,
         timerProgressBar: true,
+        confirmButtonColor: "#dc2626",
       });
 
-      // Navigate to home page
       navigate("/home");
-
-    } catch (error: any) {
+    } catch (error) {
       console.error("Verification failed:", error);
       setIsLoading(false);
 
-      let errorMessage = "Verification failed. Please try again.";
-      if (error.response?.status === 400) {
-        errorMessage = "Invalid OTP code. Please check and try again.";
-      } else if (error.response?.status === 401) {
-        errorMessage = "OTP expired. Please request a new code.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
+      let msg = "Verification failed. Please try again.";
 
-      setError(errorMessage);
-      
-      // Shake animation on error
-      inputRefs.current.forEach(ref => {
+      if (error.response?.status === 400) msg = "Invalid OTP code. Please try again.";
+      else if (error.response?.status === 401) msg = "OTP expired. Please request a new code.";
+      else if (error.response?.data?.message) msg = error.response.data.message;
+      else if (error.message) msg = error.message;
+
+      setError(msg);
+
+      // Shake animation
+      inputRefs.current.forEach((ref) => {
         if (ref) {
           ref.classList.add("shake");
           setTimeout(() => ref.classList.remove("shake"), 500);
@@ -164,13 +159,14 @@ export default function VerifyEmailScreen() {
 
       await Swal.fire({
         title: "Verification Failed",
-        text: errorMessage,
+        text: msg,
         icon: "error",
         confirmButtonColor: "#dc2626",
       });
     }
   };
 
+  // Resend OTP
   const handleResendOTP = async () => {
     if (resendTimer > 0) return;
 
@@ -178,39 +174,31 @@ export default function VerifyEmailScreen() {
     setError("");
 
     try {
-      // Note: You'll need to implement a resend OTP endpoint in your backend
-      // This is a placeholder implementation
       console.log("Resending OTP to:", email);
-      
-      // If you have a resend endpoint, call it here:
-      // await userService.resendOTP(email);
-      
-      // For now, simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // simulate API call
+
       await Swal.fire({
         title: "Code Sent!",
         text: "A new verification code has been sent to your email.",
         icon: "success",
-        confirmButtonColor: "#dc2626",
         timer: 2000,
         showConfirmButton: false,
-        timerProgressBar: true,
+        confirmButtonColor: "#dc2626",
       });
-      
+
       setResendTimer(60);
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
-      
-    } catch (error: any) {
-      console.error("Resend failed:", error);
-      
-      const errorMessage = error.response?.data?.message || "Failed to resend OTP. Please try again.";
-      setError(errorMessage);
-      
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        "Failed to resend OTP. Please try again.";
+      setError(msg);
+
       await Swal.fire({
         title: "Resend Failed",
-        text: errorMessage,
+        text: msg,
         icon: "error",
         confirmButtonColor: "#dc2626",
       });
@@ -222,204 +210,158 @@ export default function VerifyEmailScreen() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-10px); }
-          75% { transform: translateX(10px); }
-        }
-        .shake {
-          animation: shake 0.3s ease-in-out;
-        }
-        @keyframes success-pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        .success-pulse {
-          animation: success-pulse 0.5s ease-in-out;
-        }
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .slide-in {
-          animation: slideIn 0.4s ease-out;
-        }
+        @keyframes shake { 0%,100%{translate:0} 25%{translate:-10px} 75%{translate:10px}}
+        .shake { animation: shake .3s ease-in-out }
       `}</style>
 
       <div className="w-full max-w-2xl slide-in">
+        {/* Header */}
         <div
           className="rounded-t-3xl p-12 text-center"
           style={{
-            background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
+            background: "linear-gradient(135deg,#dc2626 0%,#b91c1c 100%)",
           }}
         >
           <div className="flex justify-center mb-4">
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
               {success ? (
-                <svg className="w-12 h-12 text-green-500 success-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-12 h-12 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               ) : (
-                <svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                <svg
+                  className="w-12 h-12 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
                 </svg>
               )}
             </div>
           </div>
-          <h1 className="text-5xl font-bold text-white mb-3">
+
+          <h1 className="text-5xl font-bold text-white mb-2">
             {success ? "Verified!" : "Verify Email"}
           </h1>
-          <p className="text-red-100 text-lg">
-            {success 
-              ? "Your email has been successfully verified"
-              : "We've sent a 6-digit code to"
-            }
-          </p>
-          {!success && email && (
-            <p className="text-white font-semibold text-lg mt-2 break-all px-4">{email}</p>
+
+          {!success && (
+            <>
+              <p className="text-red-100 text-lg">We've sent a 6-digit code to</p>
+              <p className="text-white font-semibold text-lg mt-2 break-all">
+                {email}
+              </p>
+            </>
           )}
         </div>
 
+        {/* Body */}
         <div className="bg-white shadow-2xl rounded-b-3xl p-12 border-x border-b border-red-200">
+          {/* Error box */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg slide-in">
-              <div className="flex items-center justify-center">
-                <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-red-700 text-center">{error}</p>
-              </div>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-center">{error}</p>
             </div>
           )}
 
+          {/* Success Display */}
           {success ? (
             <div className="text-center py-8">
-              <div className="mb-4">
-                <svg className="w-24 h-24 text-green-500 mx-auto success-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Email Verified!</h2>
-              <p className="text-gray-600">Redirecting you to home...</p>
+              <svg
+                className="w-20 h-20 text-green-500 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h2 className="text-2xl font-bold mt-3">Email Verified!</h2>
+              <p className="text-gray-600">Redirecting…</p>
             </div>
           ) : (
-            <div className="space-y-8">
-              <div>
-                <label className="block text-base font-medium text-gray-700 mb-4 text-center">
-                  Enter Verification Code
-                </label>
-                <div className="flex justify-center gap-3 mb-4">
-                  {otp.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={el => inputRefs.current[index] = el}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(index, e)}
-                      onPaste={index === 0 ? handlePaste : undefined}
-                      disabled={isLoading || success}
-                      className="w-14 h-16 text-center text-2xl font-bold border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 transition-all bg-gray-50 disabled:opacity-50"
-                      style={{
-                        boxShadow: digit ? "0 0 0 2px rgba(220, 38, 38, 0.2)" : "none"
-                      }}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-500 text-center">
-                  Enter the 6-digit code sent to your email
-                </p>
+            <>
+              {/* OTP inputs */}
+              <label className="block text-center text-lg font-medium mb-4">
+                Enter Verification Code
+              </label>
+
+              <div className="flex justify-center gap-3 mb-6">
+                {otp.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => (inputRefs.current[i] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleChange(i, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(i, e)}
+                    onPaste={i === 0 ? handlePaste : undefined}
+                    disabled={isLoading}
+                    className="w-14 h-16 text-center text-2xl font-bold border-2 border-red-300 rounded-lg bg-gray-50 focus:border-red-500"
+                  />
+                ))}
               </div>
 
+              {/* Verify button */}
               <button
-                type="button"
                 onClick={() => handleVerify()}
-                disabled={isLoading || otp.some(digit => !digit)}
-                className="w-full text-white font-semibold py-4 text-lg rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
-                style={{
-                  background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)",
-                }}
+                disabled={isLoading || otp.some((d) => !d)}
+                className="w-full bg-red-600 text-white font-semibold py-4 rounded-lg shadow-lg disabled:opacity-50"
               >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Verifying...
-                  </div>
-                ) : (
-                  "Verify Email"
-                )}
+                {isLoading ? "Verifying..." : "Verify Email"}
               </button>
 
-              <div className="text-center">
-                <p className="text-gray-600 text-base mb-3">
-                  Didn't receive the code?
-                </p>
+              {/* Resend */}
+              <div className="text-center mt-6">
+                <p className="text-gray-600 mb-2">Didn't receive the code?</p>
+
                 <button
                   type="button"
-                  onClick={handleResendOTP}
                   disabled={resendTimer > 0 || isResending}
-                  className="text-red-600 hover:text-red-700 font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center"
+                  onClick={handleResendOTP}
+                  className="text-red-600 font-semibold disabled:opacity-50"
                 >
-                  {isResending ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Sending...
-                    </>
-                  ) : resendTimer > 0 ? (
-                    `Resend Code (${resendTimer}s)`
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Resend Code
-                    </>
-                  )}
+                  {isResending
+                    ? "Sending..."
+                    : resendTimer > 0
+                      ? `Resend Code (${resendTimer}s)`
+                      : "Resend Code"}
                 </button>
               </div>
 
-              <div className="text-center pt-4 border-t border-gray-200">
-                <p className="text-gray-600 text-base">
+              <div className="text-center mt-6 border-t pt-4">
+                <p className="text-gray-600">
                   Wrong email?{" "}
                   <button
+                    className="text-red-600 font-semibold"
                     onClick={() => navigate(-1)}
-                    className="text-red-600 hover:text-red-700 font-semibold transition-colors"
                   >
                     Go back
                   </button>
                 </p>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>

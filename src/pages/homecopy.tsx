@@ -5,7 +5,7 @@ import {
   Menu,
   ChevronDown,
   TrendingUp,
-  Activity,
+  // Activity,
   Disc,
   Play,
   Star,
@@ -524,8 +524,8 @@ const HomeScreen = () => {
                         <div
                           className={`flex items-center space-x-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold text-white bg-linear-to-r ${metric.color} shadow-sm`}
                         >
-                          <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                          <span>{metric.trend}</span>
+                          {/* <Activity className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                          <span>{metric.trend}</span> */}
                         </div>
                       </div>
 
