@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://13.61.185.238:5000/api/payments";
+const BASE_URL = "/api/payments";
 
 // CREATE AXIOS INSTANCE
 const api = axios.create({

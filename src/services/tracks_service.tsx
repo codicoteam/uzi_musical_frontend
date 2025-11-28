@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://13.61.185.238:5000/api/tracks";
+const API_URL = "/api/tracks";
 
 // Get All Tracks
 const getAllTracks = async () => {
