@@ -26,16 +26,15 @@ function App() {
           <Route path="/create" element={<CreateAccountScreen />} />
           <Route path="/home" element={<HomeScreen />} />
           <Route path="/albums" element={<AlbumGallery />} />
+          <Route path="/albums/:albumId" element={<AlbumDetailScreen />} />
           <Route path="/all_albums" element={<AllAlbumsScreen />} />
           <Route path="/news" element={<MusicNewsScreen />} />
           <Route path="/activities" element={<MusicActivitiesScreen />} />
-          <Route path="/details1" element={<AlbumDetailScreen />} />
           <Route path="/view" element={<AlbumPage />} />
           <Route path="/verify-email" element={<VerifyEmailScreen />} />
           <Route path="/" element={<HomeScreen />} />
           <Route path="/plaques" element={<Plaques />} />
           <Route path="/profile" element={<ProfileScreen />} />
-
           <Route path="/*" element={<Errorpage />} />
         </Routes>
       </Router>

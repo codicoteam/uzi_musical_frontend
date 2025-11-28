@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "../components/sidebar";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import trackService from "../services/tracks_service";
 import profileService from "../services/profile_service";
 import cover2 from "../assets/replacementcover/cover6.png";
@@ -20,20 +20,20 @@ import cover2 from "../assets/replacementcover/cover6.png";
 interface Album {
   _id: string;
   artist:
-    | {
-        _id: string;
-        name: string;
-      }
-    | string;
+  | {
+    _id: string;
+    name: string;
+  }
+  | string;
   title: string;
   release_date: string;
   genre:
-    | {
-        _id: string;
-        name: string;
-      }
-    | string
-    | null;
+  | {
+    _id: string;
+    name: string;
+  }
+  | string
+  | null;
   cover_art: string | null;
   description: string;
   track_count: number;
@@ -80,6 +80,7 @@ const AlbumDetailScreen = () => {
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { albumId } = useParams<{ albumId: string }>(); // album id from URL
   const album = location.state?.album as Album;
 
   // User state - same as other screens
@@ -101,24 +102,28 @@ const AlbumDetailScreen = () => {
     const fetchUserProfile = async () => {
       try {
         setProfileLoading(true);
-        
+
         // First try to get profile data from profile service
         try {
           const profileData = await profileService.getMyProfile();
           console.log("Profile data from service:", profileData);
-          
+
           if (profileData && profileData.success && profileData.profile) {
             const { profile } = profileData;
-            
+
             // Extract user information from profile data - PRIORITIZE userName over firstName/lastName
             const userInfo = {
-              firstName: profile.userName || profile.firstName || profile.userId?.userName || 'User',
-              lastName: '', // Don't use lastName, we want to display only the userName
-              profilePicture: profile.profilePicture || '',
-              role: profile.role || profile.userId?.role || '',
-              userName: profile.userName || profile.userId?.userName || 'user'
+              firstName:
+                profile.userName ||
+                profile.firstName ||
+                profile.userId?.userName ||
+                "User",
+              lastName: "", // Don't use lastName, we want to display only the userName
+              profilePicture: profile.profilePicture || "",
+              role: profile.role || profile.userId?.role || "",
+              userName: profile.userName || profile.userId?.userName || "user",
             };
-            
+
             console.log("Extracted user info:", userInfo);
             setUserProfile(userInfo);
             setProfileLoading(false);
@@ -133,14 +138,14 @@ const AlbumDetailScreen = () => {
         if (storedUser) {
           const userData = JSON.parse(storedUser);
           console.log("User data from localStorage:", userData);
-          
+
           if (userData.user) {
             setUserProfile({
-              firstName: userData.user.userName || 'User', // Use userName as firstName for display
-              lastName: '',
-              profilePicture: userData.user.profilePicture || '',
-              role: userData.user.role || '',
-              userName: userData.user.userName || 'User'
+              firstName: userData.user.userName || "User", // Use userName as firstName for display
+              lastName: "",
+              profilePicture: userData.user.profilePicture || "",
+              role: userData.user.role || "",
+              userName: userData.user.userName || "User",
             });
             setProfileLoading(false);
             return;
@@ -149,20 +154,20 @@ const AlbumDetailScreen = () => {
 
         // Final fallback if both methods fail
         setUserProfile({
-          firstName: 'User',
-          lastName: '',
-          profilePicture: '',
-          role: '',
-          userName: 'user'
+          firstName: "User",
+          lastName: "",
+          profilePicture: "",
+          role: "",
+          userName: "user",
         });
       } catch (error) {
         console.error("Error in user profile setup:", error);
         setUserProfile({
-          firstName: 'User',
-          lastName: '',
-          profilePicture: '',
-          role: '',
-          userName: 'user'
+          firstName: "User",
+          lastName: "",
+          profilePicture: "",
+          role: "",
+          userName: "user",
         });
       } finally {
         setProfileLoading(false);
@@ -176,9 +181,9 @@ const AlbumDetailScreen = () => {
   const getUserInitials = () => {
     if (!userProfile) return "U";
     // Use userName first, then fallback to firstName
-    const userNameChar = userProfile.userName?.charAt(0) || '';
-    const firstNameChar = userProfile.firstName?.charAt(0) || '';
-    return (userNameChar || firstNameChar).toUpperCase() || 'U';
+    const userNameChar = userProfile.userName?.charAt(0) || "";
+    const firstNameChar = userProfile.firstName?.charAt(0) || "";
+    return (userNameChar || firstNameChar).toUpperCase() || "U";
   };
 
   // Get display name - PRIORITIZE userName over firstName/lastName
@@ -191,12 +196,14 @@ const AlbumDetailScreen = () => {
   // Format role for display
   const getDisplayRole = () => {
     if (!userProfile) return "";
-    return userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1);
+    return (
+      userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)
+    );
   };
 
   // Check if profile picture is a valid Supabase URL
   const isValidProfilePicture = (url: string) => {
-    return url && url.startsWith('https://') && url.includes('supabase');
+    return url && url.startsWith("https://") && url.includes("supabase");
   };
 
   const handleLikeWithAnimation = (trackId: string, e: React.MouseEvent) => {
@@ -291,6 +298,8 @@ const AlbumDetailScreen = () => {
   useEffect(() => {
     const fetchTracks = async () => {
       try {
+        if (!album) return;
+
         setLoading(true);
         console.log("🔍 Fetching tracks for album ID:", album._id);
 
@@ -319,7 +328,7 @@ const AlbumDetailScreen = () => {
         console.error("❌ Error fetching tracks:", err);
         console.error("❌ Error details:", {
           message: err instanceof Error ? err.message : "Unknown error",
-          albumId: album._id,
+          albumId: album?._id ?? albumId,
         });
         setError("Failed to load tracks");
         setTracks([]);
@@ -332,9 +341,12 @@ const AlbumDetailScreen = () => {
     if (album) {
       fetchTracks();
     } else {
-      console.warn("⚠️ No album data available");
+      console.warn(
+        "⚠️ No album data available in location.state for albumId:",
+        albumId
+      );
     }
-  }, [album]);
+  }, [album, albumId]);
 
   if (!album) {
     return (
@@ -345,6 +357,11 @@ const AlbumDetailScreen = () => {
           <h2 className={`text-2xl font-bold ${themeClasses.text} mb-4`}>
             Album Not Found
           </h2>
+          {albumId && (
+            <p className={`${themeClasses.textSecondary} mb-4`}>
+              Album ID in URL: <span className="font-mono">{albumId}</span>
+            </p>
+          )}
           <button
             onClick={() => navigate("/albums")}
             className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors"
@@ -378,9 +395,8 @@ const AlbumDetailScreen = () => {
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
@@ -660,18 +676,16 @@ const AlbumDetailScreen = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className={`lg:hidden p-2 rounded-lg ${
-                  isDarkMode ? "bg-gray-700" : "bg-red-100/50"
-                } hover:bg-opacity-80 transition-all`}
+                className={`lg:hidden p-2 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-red-100/50"
+                  } hover:bg-opacity-80 transition-all`}
               >
                 <Menu className={`w-5 h-5 ${themeClasses.textSecondary}`} />
               </button>
 
               <button
                 onClick={() => navigate("/albums")}
-                className={`p-2 rounded-lg ${
-                  isDarkMode ? "bg-gray-700" : "bg-red-100/50"
-                } hover:bg-opacity-80 transition-all`}
+                className={`p-2 rounded-lg ${isDarkMode ? "bg-gray-700" : "bg-red-100/50"
+                  } hover:bg-opacity-80 transition-all`}
               >
                 <ArrowLeft
                   className={`w-5 h-5 ${themeClasses.textSecondary}`}
@@ -699,10 +713,14 @@ const AlbumDetailScreen = () => {
                 {!profileLoading && userProfile ? (
                   <>
                     <div className="text-right hidden sm:block">
-                      <div className={`text-sm font-semibold ${themeClasses.text}`}>
+                      <div
+                        className={`text-sm font-semibold ${themeClasses.text}`}
+                      >
                         {getDisplayName()}
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary}`}>
+                      <div
+                        className={`text-xs ${themeClasses.textSecondary}`}
+                      >
                         {getDisplayRole()}
                       </div>
                     </div>
@@ -713,12 +731,15 @@ const AlbumDetailScreen = () => {
                           alt={getDisplayName()}
                           className="w-9 h-9 rounded-xl object-cover shadow-lg"
                           onError={(e) => {
-                            console.error("Failed to load profile picture:", userProfile.profilePicture);
-                            e.currentTarget.style.display = 'none';
+                            console.error(
+                              "Failed to load profile picture:",
+                              userProfile.profilePicture
+                            );
+                            e.currentTarget.style.display = "none";
                           }}
                         />
                       ) : null}
-                      
+
                       {/* Fallback avatar with initials - shown if no valid profile picture */}
                       {!isValidProfilePicture(userProfile.profilePicture) && (
                         <div className="w-9 h-9 bg-linear-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/25">
@@ -727,7 +748,7 @@ const AlbumDetailScreen = () => {
                           </span>
                         </div>
                       )}
-                      
+
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
                     </div>
                     <ChevronDown
@@ -738,10 +759,14 @@ const AlbumDetailScreen = () => {
                   // Loading state for user profile
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="text-right hidden sm:block">
-                      <div className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}>
+                      <div
+                        className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}
+                      >
                         Loading...
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary} animate-pulse`}>
+                      <div
+                        className={`text-xs ${themeClasses.textSecondary} animate-pulse`}
+                      >
                         User
                       </div>
                     </div>
@@ -761,7 +786,8 @@ const AlbumDetailScreen = () => {
           <div
             className={`relative bg-linear-to-b from-red-500 via-red-400 to-transparent pt-12 pb-6 px-4 sm:px-6 lg:px-8`}
             style={{
-              background: `linear-gradient(180deg, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 50%, transparent 100%)`,
+              background:
+                "linear-gradient(180deg, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 50%, transparent 100%)",
             }}
           >
             <div className="max-w-7xl mx-auto">
@@ -803,6 +829,11 @@ const AlbumDetailScreen = () => {
                       {album.track_count === 1 ? "song" : "songs"}
                     </span>
                   </div>
+                  {albumId && (
+                    <p className="mt-2 text-xs text-red-700/70 font-mono">
+                      ID: {albumId}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -918,11 +949,10 @@ const AlbumDetailScreen = () => {
                         className="hidden group-hover:block relative"
                       >
                         <Heart
-                          className={`w-4 h-4 transition-all ${
-                            likedTracks.has(track._id)
+                          className={`w-4 h-4 transition-all ${likedTracks.has(track._id)
                               ? "fill-red-500 text-red-500 scale-110"
                               : `${themeClasses.textSecondary} hover:text-red-500`
-                          }`}
+                            }`}
                         />
                         {clickAnimations
                           .filter((anim) => anim.id.startsWith(track._id))

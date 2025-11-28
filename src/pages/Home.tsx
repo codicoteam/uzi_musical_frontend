@@ -52,17 +52,17 @@ const HomeScreen = () => {
     _id?: string;
     title: string;
     artist:
-    | {
-      _id: string;
-      name: string;
-    }
-    | string;
+      | {
+          _id: string;
+          name: string;
+        }
+      | string;
     genre:
-    | {
-      _id: string;
-      name: string;
-    }
-    | string;
+      | {
+          _id: string;
+          name: string;
+        }
+      | string;
     cover_art: string;
     release_date: string;
     track_count: number;
@@ -79,8 +79,8 @@ const HomeScreen = () => {
 
   // Check if user has skipped profile creation in this session
   useEffect(() => {
-    const skipped = sessionStorage.getItem('hasSkippedProfile');
-    if (skipped === 'true') {
+    const skipped = sessionStorage.getItem("hasSkippedProfile");
+    if (skipped === "true") {
       setHasSkippedProfile(true);
     }
   }, []);
@@ -106,11 +106,11 @@ const HomeScreen = () => {
         console.error("Error in user profile setup:", error);
         setProfileError("Unexpected error loading profile");
         setUserProfile({
-          firstName: 'User',
-          lastName: '',
-          profilePicture: '',
-          role: '',
-          userName: 'user'
+          firstName: "User",
+          lastName: "",
+          profilePicture: "",
+          role: "",
+          userName: "user",
         });
       } finally {
         setProfileLoading(false);
@@ -132,11 +132,15 @@ const HomeScreen = () => {
 
         // Extract user information from profile data - PRIORITIZE userName over firstName/lastName
         const userInfo = {
-          firstName: profile.userName || profile.firstName || profile.userId?.userName || 'User',
-          lastName: '', // Don't use lastName, we want to display only the userName
-          profilePicture: profile.profilePicture || '',
-          role: profile.role || profile.userId?.role || '',
-          userName: profile.userName || profile.userId?.userName || 'user'
+          firstName:
+            profile.userName ||
+            profile.firstName ||
+            profile.userId?.userName ||
+            "User",
+          lastName: "", // Don't use lastName, we want to display only the userName
+          profilePicture: profile.profilePicture || "",
+          role: profile.role || profile.userId?.role || "",
+          userName: profile.userName || profile.userId?.userName || "user",
         };
 
         console.log("Extracted user info:", userInfo);
@@ -160,11 +164,11 @@ const HomeScreen = () => {
 
           if (userData.user) {
             setUserProfile({
-              firstName: userData.user.userName || 'User',
-              lastName: '',
-              profilePicture: userData.user.profilePicture || '',
-              role: userData.user.role || '',
-              userName: userData.user.userName || 'User'
+              firstName: userData.user.userName || "User",
+              lastName: "",
+              profilePicture: userData.user.profilePicture || "",
+              role: userData.user.role || "",
+              userName: userData.user.userName || "User",
             });
           }
         }
@@ -183,11 +187,11 @@ const HomeScreen = () => {
 
         if (userData.user) {
           setUserProfile({
-            firstName: userData.user.userName || 'User',
-            lastName: '',
-            profilePicture: userData.user.profilePicture || '',
-            role: userData.user.role || '',
-            userName: userData.user.userName || 'User'
+            firstName: userData.user.userName || "User",
+            lastName: "",
+            profilePicture: userData.user.profilePicture || "",
+            role: userData.user.role || "",
+            userName: userData.user.userName || "User",
           });
           return;
         }
@@ -197,18 +201,22 @@ const HomeScreen = () => {
     // Final fallback if both methods fail
     if (!showProfileDialog) {
       setUserProfile({
-        firstName: 'User',
-        lastName: '',
-        profilePicture: '',
-        role: '',
-        userName: 'user'
+        firstName: "User",
+        lastName: "",
+        profilePicture: "",
+        role: "",
+        userName: "user",
       });
     }
   };
 
   useEffect(() => {
     // Only check if we're on the home page and haven't skipped in this session
-    if (location.pathname === '/' && !hasSkippedProfile && !profileLoading) {
+    if (
+      location.pathname === "/" &&
+      !hasSkippedProfile &&
+      !profileLoading
+    ) {
       const checkProfile = async () => {
         try {
           await profileService.getMyProfile();
@@ -236,7 +244,7 @@ const HomeScreen = () => {
   // FAST navigation - using useCallback and direct execution
   const openAlbumPage = useCallback(
     (album: Album) => {
-      navigate(`/view`, {
+      navigate(`/albums/${album._id}`, {
         state: { album },
         replace: false,
       });
@@ -249,10 +257,12 @@ const HomeScreen = () => {
   const totalArtists =
     albums?.length > 0
       ? new Set(
-        albums.map((album) =>
-          typeof album.artist === "string" ? album.artist : album.artist?.name
-        )
-      ).size
+          albums.map((album) =>
+            typeof album.artist === "string"
+              ? album.artist
+              : album.artist?.name
+          )
+        ).size
       : 0;
   const totalTracks =
     albums?.reduce((sum, album) => sum + (album.track_count || 0), 0) || 0;
@@ -261,9 +271,9 @@ const HomeScreen = () => {
   const getUserInitials = () => {
     if (!userProfile) return "U";
     // Use userName first, then fallback to firstName
-    const userNameChar = userProfile.userName?.charAt(0) || '';
-    const firstNameChar = userProfile.firstName?.charAt(0) || '';
-    return (userNameChar || firstNameChar).toUpperCase() || 'U';
+    const userNameChar = userProfile.userName?.charAt(0) || "";
+    const firstNameChar = userProfile.firstName?.charAt(0) || "";
+    return (userNameChar || firstNameChar).toUpperCase() || "U";
   };
 
   // Get display name - PRIORITIZE userName over firstName/lastName
@@ -276,12 +286,14 @@ const HomeScreen = () => {
   // Format role for display
   const getDisplayRole = () => {
     if (!userProfile) return "";
-    return userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1);
+    return (
+      userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)
+    );
   };
 
   // Check if profile picture is a valid Supabase URL
   const isValidProfilePicture = (url: string) => {
-    return url && url.startsWith('https://') && url.includes('supabase');
+    return url && url.startsWith("https://") && url.includes("supabase");
   };
 
   // Theme classes
@@ -526,8 +538,6 @@ const HomeScreen = () => {
     <div
       className={`flex h-screen ${themeClasses.bg} relative transition-colors duration-300`}
     >
-
-
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -543,8 +553,9 @@ const HomeScreen = () => {
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
@@ -558,8 +569,9 @@ const HomeScreen = () => {
             <div className="flex items-center">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className={`lg:hidden mr-4 p-2 rounded-xl ${isDarkMode ? "bg-gray-700" : "bg-slate-100/50"
-                  } hover:bg-opacity-80 transition-all duration-200`}
+                className={`lg:hidden mr-4 p-2 rounded-xl ${
+                  isDarkMode ? "bg-gray-700" : "bg-slate-100/50"
+                } hover:bg-opacity-80 transition-all duration-200`}
               >
                 <Menu className={`w-5 h-5 ${themeClasses.textSecondary}`} />
               </button>
@@ -567,7 +579,9 @@ const HomeScreen = () => {
                 <div className="flex items-center space-x-2 text-sm">
                   <span className={themeClasses.textSecondary}>Home</span>
                   <span
-                    className={isDarkMode ? "text-gray-600" : "text-slate-300"}
+                    className={
+                      isDarkMode ? "text-gray-600" : "text-slate-300"
+                    }
                   >
                     ›
                   </span>
@@ -612,10 +626,14 @@ const HomeScreen = () => {
                 {!profileLoading && userProfile ? (
                   <>
                     <div className="text-right">
-                      <div className={`text-sm font-semibold ${themeClasses.text}`}>
+                      <div
+                        className={`text-sm font-semibold ${themeClasses.text}`}
+                      >
                         {getDisplayName()}
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary}`}>
+                      <div
+                        className={`text-xs ${themeClasses.textSecondary}`}
+                      >
                         {getDisplayRole()}
                       </div>
                     </div>
@@ -626,8 +644,11 @@ const HomeScreen = () => {
                           alt={getDisplayName()}
                           className="w-10 h-10 rounded-xl object-cover shadow-lg"
                           onError={(e) => {
-                            console.error("Failed to load profile picture:", userProfile.profilePicture);
-                            e.currentTarget.style.display = 'none';
+                            console.error(
+                              "Failed to load profile picture:",
+                              userProfile.profilePicture
+                            );
+                            e.currentTarget.style.display = "none";
                           }}
                         />
                       ) : null}
@@ -651,10 +672,14 @@ const HomeScreen = () => {
                   // Loading state for user profile
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
-                      <div className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}>
+                      <div
+                        className={`text-sm font-semibold ${themeClasses.text} animate-pulse`}
+                      >
                         Loading...
                       </div>
-                      <div className={`text-xs ${themeClasses.textSecondary} animate-pulse`}>
+                      <div
+                        className={`text-xs ${themeClasses.textSecondary} animate-pulse`}
+                      >
                         User
                       </div>
                     </div>
@@ -711,7 +736,9 @@ const HomeScreen = () => {
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Star className="w-5 h-5 text-yellow-500" />
-                  <h2 className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}>
+                  <h2
+                    className={`text-xl sm:text-2xl font-bold ${themeClasses.text}`}
+                  >
                     New & Featured
                   </h2>
                 </div>
@@ -828,8 +855,9 @@ const HomeScreen = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <div
-                            className={`text-xs sm:text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-slate-600"
-                              }`}
+                            className={`text-xs sm:text-sm font-medium ${
+                              isDarkMode ? "text-gray-300" : "text-slate-600"
+                            }`}
                           >
                             {metric.label}
                           </div>
@@ -856,8 +884,9 @@ const HomeScreen = () => {
                 </h2>
                 <p className={`text-sm ${themeClasses.textSecondary} mt-1`}>
                   {isSearching
-                    ? `${filteredAlbums.length} result${filteredAlbums.length !== 1 ? "s" : ""
-                    }`
+                    ? `${filteredAlbums.length} result${
+                        filteredAlbums.length !== 1 ? "s" : ""
+                      }`
                     : `${albums.length} albums available`}
                 </p>
               </div>
