@@ -276,13 +276,13 @@ const AlbumPage = () => {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const formatAlbumDuration = (duration?: number) => {
-    if (!duration) return "0 min";
-    const hours = Math.floor(duration / 3600);
-    const minutes = Math.floor((duration % 3600) / 60);
-    if (hours > 0) return `${hours} hr ${minutes} min`;
-    return `${minutes} min`;
-  };
+  // const formatAlbumDuration = (duration?: number) => {
+  //   if (!duration) return "0 min";
+  //   const hours = Math.floor(duration / 3600);
+  //   const minutes = Math.floor((duration % 3600) / 60);
+  //   if (hours > 0) return `${hours} hr ${minutes} min`;
+  //   return `${minutes} min`;
+  // };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Unknown";

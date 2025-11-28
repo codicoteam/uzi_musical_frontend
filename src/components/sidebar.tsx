@@ -55,7 +55,7 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
   ];
 
   // Automatically get current year
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();s
 
   return (
     <>

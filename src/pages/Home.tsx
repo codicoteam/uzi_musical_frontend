@@ -30,7 +30,7 @@ const HomeScreen = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [newAlbums, setNewAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newAlbumsLoading, setNewAlbumsLoading] = useState(true);
+  // const [newAlbumsLoading, setNewAlbumsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // User state
@@ -336,7 +336,7 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchNewAlbums = async () => {
       try {
-        setNewAlbumsLoading(true);
+        // setNewAlbumsLoading(true);
         const response = await albumService.getNewAlbums(5);
 
         // Handle different possible response structures
@@ -355,7 +355,7 @@ const HomeScreen = () => {
         console.error("Error fetching new albums:", err);
         setNewAlbums([]);
       } finally {
-        setNewAlbumsLoading(false);
+        // setNewAlbumsLoading(false);
       }
     };
 
