@@ -518,7 +518,7 @@ const PlaquesScreen = () => {
 
       // Try polling by reference number if no pollUrl
       if (plaque.referenceNumber) {
-        result = await PaymentsService.checkStatus(plaque.referenceNumber);
+        result = await PaymentsService.getStatus(plaque.referenceNumber);
       } else if (plaque.pollUrl) {
         // If there's a pollUrl, use it
         result = await PaymentsService.pollStatus();
